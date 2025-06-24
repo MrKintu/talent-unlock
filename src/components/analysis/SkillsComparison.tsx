@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import {
     ArrowRightIcon,
     ArrowTrendingUpIcon,
@@ -15,9 +16,16 @@ import { Skill } from '@/lib/types';
 interface SkillsComparisonProps {
     originalSkills: Skill[];
     mappedSkills: Skill[];
+    analysisId: string;
 }
 
-const SkillsComparison = ({ originalSkills, mappedSkills }: SkillsComparisonProps) => {
+const SkillsComparison = ({ originalSkills, mappedSkills, analysisId }: SkillsComparisonProps) => {
+    const router = useRouter();
+
+    const handleViewJobs = () => {
+        router.push(`/jobs/${analysisId}`);
+    };
+
     const getCategoryIcon = (category: string) => {
         switch (category) {
             case 'technical':
@@ -98,22 +106,17 @@ const SkillsComparison = ({ originalSkills, mappedSkills }: SkillsComparisonProp
                     </div>
                 </div>
 
-                {/* Arrow */}
-                <div className="hidden lg:flex items-center justify-center">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.5 }}
-                        className="w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg"
-                    >
-                        <ArrowRightIcon className="w-8 h-8 text-white" />
-                    </motion.div>
-                </div>
-
                 {/* Mapped Skills */}
                 <div>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-6 text-center">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-6 text-center flex items-center justify-center gap-2">
                         Canadian Equivalents
+                        <motion.button
+                            onClick={handleViewJobs}
+                            className="text-sm bg-red-100 text-red-600 px-3 py-1 rounded-full hover:bg-red-200 transition-colors duration-200 flex items-center gap-1"
+                        >
+                            <span>View Jobs</span>
+                            <ArrowRightIcon className="w-4 h-4" />
+                        </motion.button>
                     </h3>
                     <div className="space-y-4">
                         {mappedSkills.map((skill, index) => (
@@ -167,32 +170,29 @@ const SkillsComparison = ({ originalSkills, mappedSkills }: SkillsComparisonProp
                 </div>
             </div>
 
-            {/* Mobile Arrow */}
-            <div className="lg:hidden flex justify-center my-8">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg"
-                >
-                    <ArrowRightIcon className="w-6 h-6 text-white rotate-90" />
-                </motion.div>
-            </div>
-
             {/* Summary */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.0 }}
-                className="mt-8 text-center"
+                className="mt-12 text-center"
             >
                 <div className="bg-gradient-to-r from-red-600 to-blue-600 text-white rounded-xl p-6">
                     <h3 className="text-xl font-bold mb-2">
                         Skills Successfully Mapped! 🎉
                     </h3>
-                    <p className="text-red-100">
+                    <p className="text-red-100 mb-4">
                         Your international experience has been translated into Canadian workplace terminology
                     </p>
+                    <motion.button
+                        onClick={handleViewJobs}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="bg-white text-red-600 px-6 py-2 rounded-full font-medium hover:bg-red-50 transition-colors duration-200 inline-flex items-center gap-2"
+                    >
+                        <span>Find Matching Jobs</span>
+                        <ArrowRightIcon className="w-4 h-4" />
+                    </motion.button>
                 </div>
             </motion.div>
         </div>

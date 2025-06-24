@@ -207,6 +207,7 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                         <SkillsComparison
                             originalSkills={analysis.originalSkills}
                             mappedSkills={analysis.mappedSkills}
+                            analysisId={analysisId}
                         />
                     </motion.div>
 
