@@ -25,7 +25,7 @@ export const API_ENDPOINTS = {
     JOBS: '/api/jobs',
     RESUMES: '/api/resumes',
     UPLOAD: '/api/upload',
-    BACKGROUND: '/api/background'
+    BACKGROUND: '/api/profile'
 } as const;
 
 // Analysis Configuration

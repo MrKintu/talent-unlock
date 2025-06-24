@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { storage } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { ApiResponse, ResumeUpload } from '@/lib/types';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
-import { initAdmin } from '@/lib/firebase-admin';
+import { auth, storage, db } from '@/lib/firebase-admin';
 import { FIREBASE, ERROR_MESSAGES } from '@/lib/constants';
-
-// Initialize Firebase Admin
-initAdmin();
 
 export async function POST(request: NextRequest) {
     try {
@@ -23,8 +16,18 @@ export async function POST(request: NextRequest) {
             }, { status: 401 });
         }
 
-        const token = authHeader.split('Bearer ')[1];
-        const decodedToken = await getAuth().verifyIdToken(token);
+        let decodedToken;
+        try {
+            const token = authHeader.split('Bearer ')[1];
+            decodedToken = await auth.verifyIdToken(token);
+        } catch (error) {
+            console.error('Token verification error:', error);
+            return NextResponse.json<ApiResponse<null>>({
+                success: false,
+                error: ERROR_MESSAGES.AUTH.DEFAULT
+            }, { status: 401 });
+        }
+
         const userId = decodedToken.uid;
 
         if (!file) {
@@ -53,14 +56,32 @@ export async function POST(request: NextRequest) {
         // Generate unique filename with user ID
         const timestamp = Date.now();
         const fileName = `${FIREBASE.STORAGE.RESUME_PATH}/${userId}/${timestamp}_${file.name}`;
-        const storageRef = ref(storage, fileName);
 
-        // Upload file to Firebase Storage
-        const snapshot = await uploadBytes(storageRef, file);
-        const downloadUrl = await getDownloadURL(snapshot.ref);
+        // Convert File to Buffer for Admin SDK
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+        if (!bucketName) {
+            throw new Error('Storage bucket not configured');
+        }
+
+        // Upload file using Admin SDK
+        const bucket = storage.bucket(bucketName);
+        const fileRef = bucket.file(fileName);
+        await fileRef.save(buffer, {
+            metadata: {
+                contentType: file.type
+            }
+        });
+
+        // Get download URL
+        const [downloadUrl] = await fileRef.getSignedUrl({
+            action: 'read',
+            expires: '03-01-2500' // Long expiry for permanent access
+        });
 
         // Create upload record in Firestore
-        const db = getFirestore();
         const uploadData: ResumeUpload = {
             id: `${timestamp}_${Math.random().toString(36).substr(2, 9)}`,
             userId,
@@ -83,9 +104,10 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
         console.error('Upload error:', error);
+        const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.STORAGE.DEFAULT;
         return NextResponse.json<ApiResponse<null>>({
             success: false,
-            error: ERROR_MESSAGES.STORAGE.DEFAULT
+            error: errorMessage
         }, { status: 500 });
     }
 }

@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ApiResponse, UserProfile } from '@/lib/types';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
-import { initAdmin } from '@/lib/firebase-admin';
-
-// Initialize Firebase Admin
-initAdmin();
+import { auth, db } from '@/lib/firebase-admin';
+import { ERROR_MESSAGES } from '@/lib/constants';
 
 export async function POST(request: NextRequest) {
     try {
@@ -19,7 +15,7 @@ export async function POST(request: NextRequest) {
         }
 
         const token = authHeader.split('Bearer ')[1];
-        const decodedToken = await getAuth().verifyIdToken(token);
+        const decodedToken = await auth.verifyIdToken(token);
         const userId = decodedToken.uid;
 
         const data = await request.json();
@@ -42,7 +38,6 @@ export async function POST(request: NextRequest) {
         }
 
         // Create or update user profile
-        const db = getFirestore();
         const profileData: UserProfile = {
             userId,
             countryOfOrigin,
@@ -56,7 +51,7 @@ export async function POST(request: NextRequest) {
             achievements: Array.isArray(achievements) ? achievements : []
         };
 
-        await db.collection('userProfiles').doc(userId).set(profileData, { merge: true });
+        await db.collection('userProfile').doc(userId).set(profileData, { merge: true });
 
         return NextResponse.json<ApiResponse<UserProfile>>({
             success: true,
@@ -80,36 +75,49 @@ export async function GET(request: NextRequest) {
         if (!authHeader?.startsWith('Bearer ')) {
             return NextResponse.json<ApiResponse<null>>({
                 success: false,
-                error: 'Unauthorized'
+                error: ERROR_MESSAGES.AUTH.DEFAULT
             }, { status: 401 });
         }
 
         const token = authHeader.split('Bearer ')[1];
-        const decodedToken = await getAuth().verifyIdToken(token);
+        const decodedToken = await auth.verifyIdToken(token);
         const userId = decodedToken.uid;
 
-        const db = getFirestore();
-        const profileDoc = await db.collection('userProfiles').doc(userId).get();
+        // Get user profile
+        const profileDoc = await db.collection('userProfile').doc(userId).get();
 
         if (!profileDoc.exists) {
-            return NextResponse.json<ApiResponse<null>>({
-                success: false,
-                error: 'Profile not found'
-            }, { status: 404 });
+            // Return empty profile with default values if not found
+            const emptyProfile: UserProfile = {
+                userId,
+                countryOfOrigin: '',
+                targetRole: '',
+                yearsOfExperience: '',
+                updatedAt: new Date(),
+                socialLinks: {},
+                skills: [],
+                goals: [],
+                achievements: []
+            };
+
+            return NextResponse.json<ApiResponse<UserProfile>>({
+                success: true,
+                data: emptyProfile
+            });
         }
 
-        const profileData = profileDoc.data() as UserProfile;
+        const profile = profileDoc.data() as UserProfile;
 
         return NextResponse.json<ApiResponse<UserProfile>>({
             success: true,
-            data: profileData
+            data: profile
         });
 
     } catch (error) {
-        console.error('Profile fetch error:', error);
+        console.error('Error fetching profile:', error);
         return NextResponse.json<ApiResponse<null>>({
             success: false,
-            error: 'Failed to fetch profile'
+            error: ERROR_MESSAGES.FIRESTORE.DEFAULT
         }, { status: 500 });
     }
 } 

@@ -4,6 +4,7 @@ export interface JobSearchResponse {
     success: boolean;
     data: Job[];
     message?: string;
+    error?: string;
 }
 
 class JobService {

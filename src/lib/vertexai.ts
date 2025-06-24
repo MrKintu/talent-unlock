@@ -1,13 +1,20 @@
 import { VertexAI } from '@google-cloud/vertexai';
-import { VERTEX_AI } from './constants';
 
-const vertex_ai = new VertexAI({
-    project: process.env.VERTEX_AI_PROJECT_ID!,
-    location: process.env.VERTEX_AI_LOCATION!,
+// Initialize Vertex AI
+const vertexai = new VertexAI({
+    project: process.env.GOOGLE_CLOUD_PROJECT_ID!,
+    location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
 });
 
-export const model = vertex_ai.preview.getGenerativeModel({
-    model: VERTEX_AI.MODEL,
+// Get the model
+const model = vertexai.preview.getGenerativeModel({
+    model: 'gemini-pro',
+    generationConfig: {
+        maxOutputTokens: 2048,
+        temperature: 0.4,
+        topP: 0.8,
+        topK: 40,
+    },
 });
 
-export default vertex_ai;
+export { vertexai, model };

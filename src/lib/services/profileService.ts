@@ -4,11 +4,12 @@ export interface ProfileResponse {
     success: boolean;
     data: UserProfile;
     message?: string;
+    error?: string;
 }
 
 class ProfileService {
     async getProfile(token: string): Promise<ProfileResponse> {
-        const response = await fetch('/api/background', {
+        const response = await fetch('/api/profile', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -18,7 +19,7 @@ class ProfileService {
     }
 
     async updateProfile(token: string, profile: Partial<UserProfile>): Promise<ProfileResponse> {
-        const response = await fetch('/api/background', {
+        const response = await fetch('/api/profile', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

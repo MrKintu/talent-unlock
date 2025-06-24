@@ -2,123 +2,89 @@ import { NextRequest, NextResponse } from 'next/server';
 import { model } from '@/lib/vertexai';
 import { ApiResponse, AnalysisResult, Skill } from '@/lib/types';
 import { ANALYSIS } from '@/lib/constants';
+import { auth } from '@/lib/firebase-admin';
+import { db } from '@/lib/firebase-admin';
+import { vertexai } from '@/lib/vertexai';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const { resumeContent, resumeId, userId } = await request.json();
-
-    if (!resumeContent) {
-      return NextResponse.json<ApiResponse<null>>({
-        success: false,
-        error: 'Resume content is required'
-      }, { status: 400 });
+    // Verify authentication
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const startTime = Date.now();
+    const token = authHeader.split('Bearer ')[1];
+    const decodedToken = await auth.verifyIdToken(token);
+    const userId = decodedToken.uid;
 
-    // AI prompt for skills extraction and mapping
-    const prompt = `
-    Analyze this resume and extract skills, then map them to Canadian equivalents. 
-    Focus on technical skills, soft skills, languages, and certifications.
-    
-    Resume Content:
-    ${resumeContent}
-    
-    Please provide a JSON response with the following structure:
-    {
-      "originalSkills": [
-        {
-          "name": "skill name",
-          "confidence": 0.95,
-          "category": "${Object.values(ANALYSIS.SKILL_CATEGORIES).join('|')}",
-          "relevanceScore": 0.9
-        }
-      ],
-      "mappedSkills": [
-        {
-          "name": "Canadian equivalent skill name",
-          "confidence": 0.95,
-          "category": "${Object.values(ANALYSIS.SKILL_CATEGORIES).join('|')}",
-          "internationalName": "original skill name",
-          "canadianEquivalent": "Canadian equivalent",
-          "relevanceScore": 0.9
-        }
-      ],
-      "missingSkills": [
-        {
-          "name": "skill that would be valuable",
-          "confidence": 0.8,
-          "category": "${Object.values(ANALYSIS.SKILL_CATEGORIES).join('|')}",
-          "relevanceScore": 0.7
-        }
-      ],
-      "recommendations": [
-        "Specific recommendation for skill development",
-        "Certification suggestion",
-        "Learning path recommendation"
-      ],
-      "overallScore": 0.85
-    }
-    
-    Focus on:
-    1. Technical skills relevant to Canadian tech industry
-    2. Soft skills valued in Canadian workplace culture
-    3. Language proficiency (English/French)
-    4. Professional certifications recognized in Canada
-    5. Industry-specific terminology mapping
-    `;
-
-    // Call Vertex AI
-    const result = await model.generateContent(prompt);
-    const text = result.response.text;
-
-    // Parse AI response
-    let analysisData;
-    try {
-      // Extract JSON from AI response
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        analysisData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No JSON found in AI response');
-      }
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
-      return NextResponse.json<ApiResponse<null>>({
-        success: false,
-        error: 'Failed to parse AI analysis'
-      }, { status: 500 });
+    // Get request body
+    const { resumeId } = await request.json();
+    if (!resumeId) {
+      return NextResponse.json({ success: false, message: 'Resume ID is required' }, { status: 400 });
     }
 
-    const processingTime = Date.now() - startTime;
+    // Get resume data
+    const resumeDoc = await db.collection('resumes').doc(resumeId).get();
+    if (!resumeDoc.exists) {
+      return NextResponse.json({ success: false, message: 'Resume not found' }, { status: 404 });
+    }
 
-    // Create analysis result
-    const analysisResult: AnalysisResult = {
-      id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      resumeId,
+    const resumeData = resumeDoc.data();
+
+    // Create analysis record
+    const analysisRef = await db.collection('analysis').add({
       userId,
-      originalSkills: analysisData.originalSkills || [],
-      mappedSkills: analysisData.mappedSkills || [],
-      canadianEquivalents: analysisData.mappedSkills || [],
-      missingSkills: analysisData.missingSkills || [],
-      recommendations: analysisData.recommendations || [],
-      overallScore: analysisData.overallScore || 0,
-      processingTime,
+      resumeId,
+      fileUrl: resumeData?.fileUrl,
+      status: 'pending',
       createdAt: new Date(),
-      status: 'completed'
-    };
+    });
 
-    return NextResponse.json<ApiResponse<AnalysisResult>>({
+    return NextResponse.json({
       success: true,
-      data: analysisResult,
-      message: 'Analysis completed successfully'
+      data: {
+        id: analysisRef.id,
+        status: 'pending'
+      }
     });
 
   } catch (error) {
-    console.error('Analysis error:', error);
-    return NextResponse.json<ApiResponse<null>>({
-      success: false,
-      error: 'Failed to analyze resume'
-    }, { status: 500 });
+    console.error('Error in analysis:', error);
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    // Verify authentication
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const token = authHeader.split('Bearer ')[1];
+    const decodedToken = await auth.verifyIdToken(token);
+    const userId = decodedToken.uid;
+
+    // Get all analyses for the user
+    const analysesSnapshot = await db.collection('analysis')
+      .where('userId', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    const analyses = analysesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    return NextResponse.json({
+      success: true,
+      data: analyses
+    });
+
+  } catch (error) {
+    console.error('Error fetching analyses:', error);
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
 }

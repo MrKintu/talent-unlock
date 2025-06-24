@@ -1,8 +1,9 @@
-import { getApps, initializeApp, cert, ServiceAccount } from 'firebase-admin/app';
+import * as admin from 'firebase-admin';
+import { getApps } from 'firebase-admin/app';
 
-export const initAdmin = () => {
+// Initialize Firebase Admin if not already initialized
+function getFirebaseAdmin() {
     if (getApps().length === 0) {
-        let serviceAccount: ServiceAccount;
         const credentials = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
         if (!credentials) {
@@ -10,32 +11,22 @@ export const initAdmin = () => {
         }
 
         try {
-            try {
-                serviceAccount = JSON.parse(credentials) as ServiceAccount;
-            } catch (e) {
-                throw e;
-            }
+            const serviceAccount = JSON.parse(credentials);
 
-            if (!serviceAccount.projectId) {
-                throw new Error('Invalid service account: missing projectId');
-            }
-
-            if (!serviceAccount.privateKey) {
-                throw new Error('Invalid service account: missing privateKey');
-            }
-
-            if (!serviceAccount.clientEmail) {
-                throw new Error('Invalid service account: missing clientEmail');
-            }
-
-            initializeApp({
-                credential: cert(serviceAccount)
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount),
+                storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
             });
         } catch (error) {
-            if (error instanceof Error) {
-                throw new Error(`Failed to initialize Firebase Admin: ${error.message}`);
-            }
+            console.error('Failed to initialize Firebase Admin:', error);
             throw error;
         }
     }
-}; 
+    return admin;
+}
+
+// Initialize Firebase Admin and export services
+const firebase = getFirebaseAdmin();
+export const auth = firebase.auth();
+export const db = firebase.firestore();
+export const storage = firebase.storage(); 

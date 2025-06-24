@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast, { Toaster } from 'react-hot-toast';
 import {
     ArrowUpTrayIcon,
     XMarkIcon,
@@ -29,7 +30,11 @@ export default function ResumeUpload() {
         countryOfOrigin: '',
         targetRole: '',
         yearsOfExperience: '',
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        socialLinks: {},
+        skills: [],
+        goals: [],
+        achievements: []
     });
     const [currentStep, setCurrentStep] = useState<'upload' | 'background' | 'complete'>('upload');
     const [resumes, setResumes] = useState<ResumeUploadType[]>([]);
@@ -50,7 +55,7 @@ export default function ResumeUpload() {
 
     const fetchUserProfile = async () => {
         try {
-            const response = await fetch('/api/background', {
+            const response = await fetch('/api/profile', {
                 headers: {
                     'Authorization': `Bearer ${await user?.getIdToken()}`
                 }
@@ -132,7 +137,7 @@ export default function ResumeUpload() {
 
     const handleBackgroundSubmit = async () => {
         try {
-            const response = await fetch('/api/background', {
+            const response = await fetch('/api/profile', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -155,10 +160,17 @@ export default function ResumeUpload() {
 
     const handleFileUpload = async (file: File) => {
         try {
+            if (!user) {
+                throw new Error('User not authenticated');
+            }
+
             setUploadProgress({
                 progress: 0,
                 status: 'uploading'
             });
+
+            // Get a fresh token
+            const token = await user.getIdToken(true);
 
             const formData = new FormData();
             formData.append('file', file);
@@ -166,23 +178,27 @@ export default function ResumeUpload() {
             const response = await fetch('/api/upload', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${await user?.getIdToken()}`
+                    'Authorization': `Bearer ${token}`
                 },
                 body: formData
             });
 
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Upload failed');
+            }
+
             const data = await response.json();
 
             if (data.success) {
+                toast.success('File uploaded successfully!');
                 await handleUploadSuccess(data.data.downloadUrl);
             } else {
-                setUploadProgress({
-                    progress: 0,
-                    status: 'error'
-                });
+                throw new Error(data.error || 'Upload failed');
             }
         } catch (error) {
             console.error('Upload error:', error);
+            toast.error(error instanceof Error ? error.message : 'Upload failed. Please try again.');
             setUploadProgress({
                 progress: 0,
                 status: 'error'
@@ -202,10 +218,14 @@ export default function ResumeUpload() {
             });
 
             if (response.ok) {
+                toast.success('Resume deleted successfully');
                 await fetchResumes();
+            } else {
+                throw new Error('Failed to delete resume');
             }
         } catch (error) {
             console.error('Error deleting resume:', error);
+            toast.error('Failed to delete resume');
         }
     };
 
@@ -258,6 +278,16 @@ export default function ResumeUpload() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 py-12 px-4 sm:px-6 lg:px-8">
+            <Toaster
+                position="top-right"
+                toastOptions={{
+                    duration: 4000,
+                    style: {
+                        background: '#363636',
+                        color: '#fff',
+                    },
+                }}
+            />
             <div className="max-w-3xl mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}

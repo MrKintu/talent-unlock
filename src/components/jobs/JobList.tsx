@@ -26,7 +26,7 @@ export default function JobList({ analysisId, skills }: JobListProps) {
                 if (response.success) {
                     setJobs(response.data);
                 } else {
-                    setError(response.message || 'Failed to fetch jobs');
+                    setError(response.message || response.error || 'Failed to fetch jobs');
                 }
             } catch (error) {
                 console.error('Error fetching jobs:', error);

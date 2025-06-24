@@ -71,7 +71,7 @@ export default function ResumeManager() {
             if (response.success) {
                 await fetchResumes();
             } else {
-                setError(response.message || 'Failed to upload resume');
+                setError(response.message || response.error || 'Failed to upload resume');
             }
         } catch (error) {
             console.error('Error uploading resume:', error);
@@ -90,7 +90,7 @@ export default function ResumeManager() {
             if (response.success) {
                 await fetchResumes();
             } else {
-                setError(response.message || 'Failed to delete resume');
+                setError(response.message || response.error || 'Failed to delete resume');
             }
         } catch (error) {
             console.error('Error deleting resume:', error);
@@ -107,7 +107,7 @@ export default function ResumeManager() {
             const token = await user.getIdToken();
             const response = await resumeService.analyzeResume(token, resumeId);
             if (!response.success) {
-                setError(response.message || 'Failed to analyze resume');
+                setError(response.message || response.error || 'Failed to analyze resume');
             }
         } catch (error) {
             console.error('Error analyzing resume:', error);

@@ -7,6 +7,7 @@ export interface ResumeUploadResponse {
         id: string;
     };
     message?: string;
+    error?: string;
 }
 
 export interface ResumeListResponse {
@@ -18,6 +19,7 @@ export interface ResumeListResponse {
         uploadDate: any;
     }>;
     message?: string;
+    error?: string;
 }
 
 class ResumeService {
@@ -46,7 +48,7 @@ class ResumeService {
         return response.json();
     }
 
-    async deleteResume(token: string, resumeId: string): Promise<{ success: boolean; message?: string }> {
+    async deleteResume(token: string, resumeId: string): Promise<{ success: boolean; message?: string; error?: string }> {
         const response = await fetch('/api/resumes', {
             method: 'DELETE',
             headers: {
@@ -59,7 +61,7 @@ class ResumeService {
         return response.json();
     }
 
-    async analyzeResume(token: string, resumeId: string): Promise<{ success: boolean; message?: string }> {
+    async analyzeResume(token: string, resumeId: string): Promise<{ success: boolean; message?: string; error?: string }> {
         const response = await fetch('/api/analyze', {
             method: 'POST',
             headers: {

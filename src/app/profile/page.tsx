@@ -39,7 +39,7 @@ export default function ProfilePage() {
                 if (response.success) {
                     setProfile(response.data);
                 } else {
-                    setError(response.message || 'Failed to fetch profile');
+                    setError(response.message || response.error || 'Failed to fetch profile');
                 }
             } catch (error) {
                 console.error('Error fetching profile:', error);
@@ -70,11 +70,11 @@ export default function ProfilePage() {
                 setIsEditing(false);
                 setError(null);
             } else {
-                setError(response.message || 'Failed to save profile');
+                setError(response.message || response.error || 'Failed to save profile');
             }
         } catch (error) {
             console.error('Error saving profile:', error);
-            setError('Failed to save profile');
+            setError(error instanceof Error ? error.message : 'Failed to save profile');
         }
     };
 
