@@ -28,26 +28,34 @@ const LandingPage = () => {
         <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50 overflow-hidden">
             {/* Animated Background Elements */}
             <div className="absolute inset-0">
-                {[...Array(20)].map((_, i) => (
-                    <motion.div
-                        key={i}
-                        className="absolute w-2 h-2 bg-red-200 rounded-full opacity-30"
-                        animate={{
-                            x: [0, 100, 0],
-                            y: [0, -100, 0],
-                            scale: [1, 1.5, 1],
-                        }}
-                        transition={{
-                            duration: 10 + i * 2,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                        }}
-                        style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                        }}
-                    />
-                ))}
+                {[...Array(20)].map((_, i) => {
+                    // Create a deterministic pattern using the index
+                    const row = Math.floor(i / 5);
+                    const col = i % 5;
+                    const left = (col * 25) + ((row % 2) * 12.5); // Offset every other row
+                    const top = row * 25;
+
+                    return (
+                        <motion.div
+                            key={i}
+                            className="absolute w-2 h-2 bg-red-200 rounded-full opacity-30"
+                            animate={{
+                                x: [0, 100, 0],
+                                y: [0, -100, 0],
+                                scale: [1, 1.5, 1],
+                            }}
+                            transition={{
+                                duration: 10 + i * 2,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
+                            style={{
+                                left: `${left}%`,
+                                top: `${top}%`,
+                            }}
+                        />
+                    );
+                })}
             </div>
 
             {/* Hero Section */}

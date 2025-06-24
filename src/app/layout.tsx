@@ -1,21 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import Navigation from "@/components/Navigation";
+import { AuthProvider } from "@/lib/auth/AuthContext";
+import Header from "@/components/shared/Header";
+import Footer from "@/components/shared/Footer";
+import BrowserExtensionHandler from "@/components/BrowserExtensionHandler";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TalentUnlock - Unlock Your Canadian Career",
-  description: "AI-powered platform that translates your international experience into Canadian job opportunities. Break down credential barriers and find your dream job in Canada.",
+  title: "TalentUnlock - Bridge Your International Experience to Canadian Success",
+  description: "Transform your international experience into Canadian job opportunities with AI-powered skill mapping and job matching.",
   keywords: "immigration, Canada, jobs, career, AI, skills mapping, newcomers, talent",
   authors: [{ name: "TalentUnlock Team" }],
   openGraph: {
@@ -28,16 +23,25 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={inter.className}
+        suppressHydrationWarning={true}
       >
-        <Navigation />
-        {children}
+        <BrowserExtensionHandler />
+        <AuthProvider>
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-grow">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );
