@@ -9,6 +9,7 @@ import SocialLinks from '@/components/profile/SocialLinks';
 import SkillsSection from '@/components/profile/SkillsSection';
 import AchievementsSection from '@/components/profile/AchievementsSection';
 import ResumeManager from '@/components/profile/ResumeManager';
+import { profileService } from '@/lib/services/profileService';
 
 const initialProfile: UserProfile = {
     userId: '',
@@ -27,22 +28,22 @@ export default function ProfilePage() {
     const [isEditing, setIsEditing] = useState(false);
     const [profile, setProfile] = useState<UserProfile>(initialProfile);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchProfile = async () => {
             if (!user) return;
             try {
-                const response = await fetch('/api/background', {
-                    headers: {
-                        'Authorization': `Bearer ${await user.getIdToken()}`
-                    }
-                });
-                const data = await response.json();
-                if (data.success) {
-                    setProfile(data.data);
+                const token = await user.getIdToken();
+                const response = await profileService.getProfile(token);
+                if (response.success) {
+                    setProfile(response.data);
+                } else {
+                    setError(response.message || 'Failed to fetch profile');
                 }
             } catch (error) {
                 console.error('Error fetching profile:', error);
+                setError('Failed to fetch profile');
             } finally {
                 setIsLoading(false);
             }
@@ -58,24 +59,22 @@ export default function ProfilePage() {
     const handleSave = async () => {
         if (!user) return;
         try {
-            const response = await fetch('/api/background', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${await user.getIdToken()}`
-                },
-                body: JSON.stringify({
-                    ...profile,
-                    userId: user.uid
-                })
+            const token = await user.getIdToken();
+            const response = await profileService.updateProfile(token, {
+                ...profile,
+                userId: user.uid
             });
-            const data = await response.json();
-            if (data.success) {
-                setProfile(data.data);
+
+            if (response.success) {
+                setProfile(response.data);
                 setIsEditing(false);
+                setError(null);
+            } else {
+                setError(response.message || 'Failed to save profile');
             }
         } catch (error) {
             console.error('Error saving profile:', error);
+            setError('Failed to save profile');
         }
     };
 
@@ -118,6 +117,12 @@ export default function ProfilePage() {
                             )}
                         </button>
                     </div>
+
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg">
+                            {error}
+                        </div>
+                    )}
 
                     <BasicInfo
                         profile={profile}

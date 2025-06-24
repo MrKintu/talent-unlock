@@ -17,38 +17,35 @@ export interface UserProfile {
     yearsOfExperience: string;
     updatedAt: Date;
     // Social links
-    socialLinks?: {
+    socialLinks: {
         github?: string;
         linkedin?: string;
         portfolio?: string;
     };
     // Skills with proficiency level
-    skills?: {
+    skills: Array<{
         name: string;
-        proficiency: typeof ANALYSIS.PROFICIENCY_LEVELS[keyof typeof ANALYSIS.PROFICIENCY_LEVELS];
+        proficiency: string;
         endorsements?: number;
-    }[];
+    }>;
     // Goals and achievements
-    goals?: {
+    goals: Array<{
         id: string;
         title: string;
         description: string;
-        category: keyof typeof USER_PROFILE.GOAL_CATEGORIES;
-        status: keyof typeof USER_PROFILE.GOAL_STATUS;
-        deadline?: Date;
-        completedAt?: Date;
-        progress?: number;
-    }[];
+        progress: number;
+        dueDate?: Date;
+    }>;
     // Digital trophies/badges
-    achievements?: {
+    achievements: Array<{
         id: string;
         title: string;
         description: string;
-        category: keyof typeof USER_PROFILE.ACHIEVEMENT_CATEGORIES;
+        category: 'SKILLS' | 'CAREER' | 'EDUCATION' | 'COMMUNITY';
         earnedAt: Date;
         icon: string;
-        level: typeof USER_PROFILE.ACHIEVEMENT_LEVELS[keyof typeof USER_PROFILE.ACHIEVEMENT_LEVELS];
-    }[];
+        level: 'bronze' | 'silver' | 'gold' | 'platinum';
+    }>;
 }
 
 export interface ResumeUpload {
@@ -93,18 +90,16 @@ export interface Job {
     title: string;
     company: string;
     location: string;
+    description: string;
+    requirements: string[];
     salary?: {
         min: number;
         max: number;
-        currency: typeof JOB.CURRENCY;
+        currency: string;
     };
-    description: string;
-    requirements: string[];
-    skills: string[];
     matchPercentage: number;
-    applicationUrl?: string;
     postedDate: Date;
-    source: keyof typeof JOB.SOURCES;
+    applicationUrl: string;
 }
 
 export interface JobMatch {
@@ -151,4 +146,37 @@ export interface ApiResponse<T> {
     data?: T;
     error?: string;
     message?: string;
+}
+
+export interface Analysis {
+    id: string;
+    userId: string;
+    resumeId: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    results?: {
+        skills: Array<{
+            name: string;
+            level: string;
+            confidence: number;
+        }>;
+        experience: Array<{
+            role: string;
+            company: string;
+            duration: number;
+            highlights: string[];
+        }>;
+        education: Array<{
+            degree: string;
+            institution: string;
+            year: number;
+        }>;
+        recommendations: Array<{
+            type: 'skill' | 'certification' | 'experience';
+            description: string;
+            priority: 'high' | 'medium' | 'low';
+        }>;
+    };
+    createdAt: Date;
+    completedAt?: Date;
+    error?: string;
 }
