@@ -1,4 +1,5 @@
 import { VertexAI } from '@google-cloud/vertexai';
+import { VERTEX_AI } from './constants';
 
 const vertex_ai = new VertexAI({
     project: process.env.VERTEX_AI_PROJECT_ID!,
@@ -6,7 +7,7 @@ const vertex_ai = new VertexAI({
 });
 
 export const model = vertex_ai.preview.getGenerativeModel({
-    model: 'gemini-pro',
+    model: VERTEX_AI.MODEL,
 });
 
 export default vertex_ai;

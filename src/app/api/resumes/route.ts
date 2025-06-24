@@ -5,6 +5,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { initAdmin } from '@/lib/firebase-admin';
 import { storage } from '@/lib/firebase';
 import { ref, deleteObject } from 'firebase/storage';
+import { FIREBASE_ERRORS, ERROR_MESSAGES, FIREBASE } from '@/lib/constants';
 
 // Initialize Firebase Admin
 initAdmin();
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
         if (!authHeader?.startsWith('Bearer ')) {
             return NextResponse.json<ApiResponse<null>>({
                 success: false,
-                error: 'Unauthorized'
+                error: ERROR_MESSAGES.AUTH.DEFAULT
             }, { status: 401 });
         }
 
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
         console.error('Resume fetch error:', error);
         return NextResponse.json<ApiResponse<null>>({
             success: false,
-            error: 'Failed to fetch resumes'
+            error: ERROR_MESSAGES.FIRESTORE.DEFAULT
         }, { status: 500 });
     }
 }
@@ -53,7 +54,7 @@ export async function DELETE(request: NextRequest) {
         if (!authHeader?.startsWith('Bearer ')) {
             return NextResponse.json<ApiResponse<null>>({
                 success: false,
-                error: 'Unauthorized'
+                error: ERROR_MESSAGES.AUTH.DEFAULT
             }, { status: 401 });
         }
 
@@ -75,7 +76,7 @@ export async function DELETE(request: NextRequest) {
         if (!resumeDoc.exists) {
             return NextResponse.json<ApiResponse<null>>({
                 success: false,
-                error: 'Resume not found'
+                error: ERROR_MESSAGES.FIRESTORE[FIREBASE_ERRORS.FIRESTORE.DOCUMENT_NOT_FOUND]
             }, { status: 404 });
         }
 
@@ -83,13 +84,21 @@ export async function DELETE(request: NextRequest) {
         if (resumeData.userId !== userId) {
             return NextResponse.json<ApiResponse<null>>({
                 success: false,
-                error: 'Unauthorized'
+                error: ERROR_MESSAGES.FIRESTORE[FIREBASE_ERRORS.FIRESTORE.PERMISSION_DENIED]
             }, { status: 403 });
         }
 
-        // Delete file from storage
-        const storageRef = ref(storage, `resumes/${userId}/${resumeData.fileName}`);
-        await deleteObject(storageRef);
+        try {
+            // Delete file from storage
+            const storageRef = ref(storage, `${FIREBASE.STORAGE.RESUME_PATH}/${userId}/${resumeData.fileName}`);
+            await deleteObject(storageRef);
+        } catch (storageError: any) {
+            // If the file doesn't exist in storage, we still want to delete the document
+            if (storageError?.code !== FIREBASE_ERRORS.STORAGE.OBJECT_NOT_FOUND) {
+                throw storageError;
+            }
+            console.warn('File not found in storage, proceeding with document deletion');
+        }
 
         // Delete document from Firestore
         await db.collection('resumes').doc(resumeId).delete();
@@ -99,11 +108,15 @@ export async function DELETE(request: NextRequest) {
             message: 'Resume deleted successfully'
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Resume delete error:', error);
+        const errorMessage = error?.code === FIREBASE_ERRORS.STORAGE.OBJECT_NOT_FOUND
+            ? ERROR_MESSAGES.STORAGE[FIREBASE_ERRORS.STORAGE.OBJECT_NOT_FOUND]
+            : ERROR_MESSAGES.STORAGE.DEFAULT;
+
         return NextResponse.json<ApiResponse<null>>({
             success: false,
-            error: 'Failed to delete resume'
+            error: errorMessage
         }, { status: 500 });
     }
 }
@@ -115,7 +128,7 @@ export async function PATCH(request: NextRequest) {
         if (!authHeader?.startsWith('Bearer ')) {
             return NextResponse.json<ApiResponse<null>>({
                 success: false,
-                error: 'Unauthorized'
+                error: ERROR_MESSAGES.AUTH.DEFAULT
             }, { status: 401 });
         }
 
@@ -159,7 +172,7 @@ export async function PATCH(request: NextRequest) {
         console.error('Resume update error:', error);
         return NextResponse.json<ApiResponse<null>>({
             success: false,
-            error: 'Failed to update resume'
+            error: ERROR_MESSAGES.FIRESTORE.DEFAULT
         }, { status: 500 });
     }
 } 

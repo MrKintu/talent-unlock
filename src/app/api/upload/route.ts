@@ -5,6 +5,7 @@ import { ApiResponse, ResumeUpload } from '@/lib/types';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { initAdmin } from '@/lib/firebase-admin';
+import { FIREBASE, ERROR_MESSAGES } from '@/lib/constants';
 
 // Initialize Firebase Admin
 initAdmin();
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
         if (!authHeader?.startsWith('Bearer ')) {
             return NextResponse.json<ApiResponse<null>>({
                 success: false,
-                error: 'Unauthorized'
+                error: ERROR_MESSAGES.AUTH.DEFAULT
             }, { status: 401 });
         }
 
@@ -34,16 +35,15 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate file type
-        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        if (!allowedTypes.includes(file.type)) {
+        if (!FIREBASE.STORAGE.ALLOWED_FILE_TYPES.includes(file.type as typeof FIREBASE.STORAGE.ALLOWED_FILE_TYPES[number])) {
             return NextResponse.json<ApiResponse<null>>({
                 success: false,
                 error: 'Invalid file type. Please upload a PDF or Word document.'
             }, { status: 400 });
         }
 
-        // Validate file size (10MB limit)
-        if (file.size > 10 * 1024 * 1024) {
+        // Validate file size
+        if (file.size > FIREBASE.STORAGE.MAX_FILE_SIZE) {
             return NextResponse.json<ApiResponse<null>>({
                 success: false,
                 error: 'File size too large. Please upload a file smaller than 10MB.'
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
         // Generate unique filename with user ID
         const timestamp = Date.now();
-        const fileName = `resumes/${userId}/${timestamp}_${file.name}`;
+        const fileName = `${FIREBASE.STORAGE.RESUME_PATH}/${userId}/${timestamp}_${file.name}`;
         const storageRef = ref(storage, fileName);
 
         // Upload file to Firebase Storage
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         console.error('Upload error:', error);
         return NextResponse.json<ApiResponse<null>>({
             success: false,
-            error: 'Failed to upload file'
+            error: ERROR_MESSAGES.STORAGE.DEFAULT
         }, { status: 500 });
     }
 }

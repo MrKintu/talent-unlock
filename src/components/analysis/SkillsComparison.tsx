@@ -12,6 +12,7 @@ import {
     TrophyIcon
 } from '@heroicons/react/24/outline';
 import { Skill } from '@/lib/types';
+import { ANALYSIS } from '@/lib/constants';
 
 interface SkillsComparisonProps {
     originalSkills: Skill[];
@@ -26,30 +27,30 @@ const SkillsComparison = ({ originalSkills, mappedSkills, analysisId }: SkillsCo
         router.push(`/jobs/${analysisId}`);
     };
 
-    const getCategoryIcon = (category: string) => {
+    const getCategoryIcon = (category: keyof typeof ANALYSIS.SKILL_CATEGORIES) => {
         switch (category) {
-            case 'technical':
+            case 'TECHNICAL':
                 return <CodeBracketIcon className="w-4 h-4" />;
-            case 'soft':
+            case 'SOFT':
                 return <UsersIcon className="w-4 h-4" />;
-            case 'language':
+            case 'LANGUAGE':
                 return <GlobeAltIcon className="w-4 h-4" />;
-            case 'certification':
+            case 'CERTIFICATION':
                 return <TrophyIcon className="w-4 h-4" />;
             default:
                 return <CodeBracketIcon className="w-4 h-4" />;
         }
     };
 
-    const getCategoryColor = (category: string) => {
+    const getCategoryColor = (category: keyof typeof ANALYSIS.SKILL_CATEGORIES) => {
         switch (category) {
-            case 'technical':
+            case 'TECHNICAL':
                 return 'bg-blue-100 text-blue-800';
-            case 'soft':
+            case 'SOFT':
                 return 'bg-green-100 text-green-800';
-            case 'language':
+            case 'LANGUAGE':
                 return 'bg-purple-100 text-purple-800';
-            case 'certification':
+            case 'CERTIFICATION':
                 return 'bg-yellow-100 text-yellow-800';
             default:
                 return 'bg-gray-100 text-gray-800';
@@ -80,12 +81,12 @@ const SkillsComparison = ({ originalSkills, mappedSkills, analysisId }: SkillsCo
                             >
                                 <div className="flex items-center justify-between mb-2">
                                     <h4 className="font-semibold text-gray-800">{skill.name}</h4>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(skill.category)}`}>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(skill.category as keyof typeof ANALYSIS.SKILL_CATEGORIES)}`}>
                                         {skill.category}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    {getCategoryIcon(skill.category)}
+                                    {getCategoryIcon(skill.category as keyof typeof ANALYSIS.SKILL_CATEGORIES)}
                                     <span>Confidence: {Math.round(skill.confidence * 100)}%</span>
                                 </div>
                                 <div className="mt-2">
@@ -129,7 +130,7 @@ const SkillsComparison = ({ originalSkills, mappedSkills, analysisId }: SkillsCo
                             >
                                 <div className="flex items-center justify-between mb-2">
                                     <h4 className="font-semibold text-gray-800">{skill.name}</h4>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(skill.category)}`}>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(skill.category as keyof typeof ANALYSIS.SKILL_CATEGORIES)}`}>
                                         {skill.category}
                                     </span>
                                 </div>
@@ -147,7 +148,7 @@ const SkillsComparison = ({ originalSkills, mappedSkills, analysisId }: SkillsCo
                                 )}
 
                                 <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                                    {getCategoryIcon(skill.category)}
+                                    {getCategoryIcon(skill.category as keyof typeof ANALYSIS.SKILL_CATEGORIES)}
                                     <span>Confidence: {Math.round(skill.confidence * 100)}%</span>
                                 </div>
 

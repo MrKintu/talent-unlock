@@ -1,3 +1,5 @@
+import { ANALYSIS, USER_PROFILE, JOB } from './constants';
+
 export interface User {
     id: string;
     email?: string;
@@ -23,7 +25,7 @@ export interface UserProfile {
     // Skills with proficiency level
     skills?: {
         name: string;
-        proficiency: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+        proficiency: typeof ANALYSIS.PROFICIENCY_LEVELS[keyof typeof ANALYSIS.PROFICIENCY_LEVELS];
         endorsements?: number;
     }[];
     // Goals and achievements
@@ -31,8 +33,8 @@ export interface UserProfile {
         id: string;
         title: string;
         description: string;
-        category: 'career' | 'skills' | 'education' | 'certification';
-        status: 'in_progress' | 'completed' | 'not_started';
+        category: keyof typeof USER_PROFILE.GOAL_CATEGORIES;
+        status: keyof typeof USER_PROFILE.GOAL_STATUS;
         deadline?: Date;
         completedAt?: Date;
         progress?: number;
@@ -42,10 +44,10 @@ export interface UserProfile {
         id: string;
         title: string;
         description: string;
-        category: 'skills' | 'career' | 'education' | 'community';
+        category: keyof typeof USER_PROFILE.ACHIEVEMENT_CATEGORIES;
         earnedAt: Date;
         icon: string;
-        level: 'bronze' | 'silver' | 'gold' | 'platinum';
+        level: typeof USER_PROFILE.ACHIEVEMENT_LEVELS[keyof typeof USER_PROFILE.ACHIEVEMENT_LEVELS];
     }[];
 }
 
@@ -65,7 +67,7 @@ export interface ResumeUpload {
 export interface Skill {
     name: string;
     confidence: number;
-    category: 'technical' | 'soft' | 'language' | 'certification';
+    category: keyof typeof ANALYSIS.SKILL_CATEGORIES;
     internationalName?: string;
     canadianEquivalent?: string;
     relevanceScore: number;
@@ -94,7 +96,7 @@ export interface Job {
     salary?: {
         min: number;
         max: number;
-        currency: string;
+        currency: typeof JOB.CURRENCY;
     };
     description: string;
     requirements: string[];
@@ -102,7 +104,7 @@ export interface Job {
     matchPercentage: number;
     applicationUrl?: string;
     postedDate: Date;
-    source: 'indeed' | 'linkedin' | 'glassdoor' | 'custom';
+    source: keyof typeof JOB.SOURCES;
 }
 
 export interface JobMatch {
@@ -134,7 +136,7 @@ export interface CareerStep {
 
 export interface UploadProgress {
     progress: number;
-    status: 'uploading' | 'completed' | 'error';
+    status: 'ready' | 'uploading' | 'completed' | 'error';
     message?: string;
 }
 

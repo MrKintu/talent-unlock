@@ -4,14 +4,9 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowUpTrayIcon,
-    DocumentTextIcon,
     XMarkIcon,
     CheckCircleIcon,
-    ExclamationCircleIcon,
     ArrowRightIcon,
-    GlobeAltIcon,
-    BriefcaseIcon,
-    ClockIcon,
     CloudArrowUpIcon,
     UserIcon,
     CheckIcon
@@ -19,6 +14,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { ResumeUpload as ResumeUploadType, UploadProgress, UserProfile } from '@/lib/types';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { FIREBASE } from '@/lib/constants';
 
 export default function ResumeUpload() {
     const router = useRouter();
@@ -109,19 +105,22 @@ export default function ResumeUpload() {
 
     const handleFileSelect = (file: File) => {
         // Validate file type
-        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        if (!allowedTypes.includes(file.type)) {
+        if (!FIREBASE.STORAGE.ALLOWED_FILE_TYPES.includes(file.type as typeof FIREBASE.STORAGE.ALLOWED_FILE_TYPES[number])) {
             alert('Please upload a PDF or Word document.');
             return;
         }
 
-        // Validate file size (10MB limit)
-        if (file.size > 10 * 1024 * 1024) {
+        // Validate file size
+        if (file.size > FIREBASE.STORAGE.MAX_FILE_SIZE) {
             alert('File size too large. Please upload a file smaller than 10MB.');
             return;
         }
 
         setSelectedFile(file);
+        setUploadProgress({
+            progress: 0,
+            status: 'ready'
+        });
     };
 
     const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -396,13 +395,43 @@ export default function ResumeUpload() {
                                         animate={{ opacity: 1, y: 0 }}
                                         className="mt-8 text-center"
                                     >
-                                        <button
-                                            onClick={() => setCurrentStep('background')}
-                                            className="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3 mx-auto"
-                                        >
-                                            Continue
-                                            <ArrowRightIcon className="w-5 h-5" />
-                                        </button>
+                                        {uploadProgress.status === 'uploading' ? (
+                                            <div className="space-y-4">
+                                                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                                    <div
+                                                        className="bg-red-600 h-2.5 rounded-full transition-all duration-300"
+                                                        style={{ width: `${uploadProgress.progress}%` }}
+                                                    ></div>
+                                                </div>
+                                                <p className="text-sm text-gray-600">Uploading... {uploadProgress.progress}%</p>
+                                            </div>
+                                        ) : uploadProgress.status === 'completed' ? (
+                                            <button
+                                                onClick={() => setCurrentStep('background')}
+                                                className="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3 mx-auto"
+                                            >
+                                                Continue
+                                                <ArrowRightIcon className="w-5 h-5" />
+                                            </button>
+                                        ) : uploadProgress.status === 'error' ? (
+                                            <div className="space-y-4">
+                                                <p className="text-red-600">Upload failed. Please try again.</p>
+                                                <button
+                                                    onClick={() => handleFileUpload(selectedFile)}
+                                                    className="text-red-600 hover:text-red-700 underline"
+                                                >
+                                                    Retry Upload
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleFileUpload(selectedFile)}
+                                                className="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3 mx-auto"
+                                            >
+                                                Upload Resume
+                                                <ArrowRightIcon className="w-5 h-5" />
+                                            </button>
+                                        )}
                                     </motion.div>
                                 )}
                             </motion.div>

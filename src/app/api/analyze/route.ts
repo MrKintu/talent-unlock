@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { model } from '@/lib/vertexai';
 import { ApiResponse, AnalysisResult, Skill } from '@/lib/types';
+import { ANALYSIS } from '@/lib/constants';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
         {
           "name": "skill name",
           "confidence": 0.95,
-          "category": "technical|soft|language|certification",
+          "category": "${Object.values(ANALYSIS.SKILL_CATEGORIES).join('|')}",
           "relevanceScore": 0.9
         }
       ],
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
         {
           "name": "Canadian equivalent skill name",
           "confidence": 0.95,
-          "category": "technical|soft|language|certification",
+          "category": "${Object.values(ANALYSIS.SKILL_CATEGORIES).join('|')}",
           "internationalName": "original skill name",
           "canadianEquivalent": "Canadian equivalent",
           "relevanceScore": 0.9
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
         {
           "name": "skill that would be valuable",
           "confidence": 0.8,
-          "category": "technical|soft|language|certification",
+          "category": "${Object.values(ANALYSIS.SKILL_CATEGORIES).join('|')}",
           "relevanceScore": 0.7
         }
       ],
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     // Call Vertex AI
     const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const text = result.response.text;
 
     // Parse AI response
     let analysisData;

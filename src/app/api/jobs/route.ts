@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ApiResponse, Job, JobMatch } from '@/lib/types';
+import { JOB } from '@/lib/constants';
 
 // Mock Canadian job data
 const mockJobs: Job[] = [
@@ -8,70 +9,70 @@ const mockJobs: Job[] = [
         title: 'Senior Software Engineer',
         company: 'Shopify',
         location: 'Toronto, ON',
-        salary: { min: 120000, max: 180000, currency: 'CAD' },
+        salary: { min: 120000, max: 180000, currency: JOB.CURRENCY },
         description: 'Join our team to build scalable e-commerce solutions that power millions of businesses worldwide.',
         requirements: ['5+ years experience', 'React/Node.js', 'Cloud platforms', 'Agile methodology'],
         skills: ['React', 'Node.js', 'TypeScript', 'AWS', 'Agile'],
         matchPercentage: 92,
         applicationUrl: 'https://shopify.com/careers',
         postedDate: new Date('2024-01-15'),
-        source: 'linkedin'
+        source: 'LINKEDIN'
     },
     {
         id: '2',
         title: 'Data Scientist',
         company: 'RBC',
         location: 'Toronto, ON',
-        salary: { min: 100000, max: 150000, currency: 'CAD' },
+        salary: { min: 100000, max: 150000, currency: JOB.CURRENCY },
         description: 'Help us leverage data to drive business decisions and create innovative financial solutions.',
         requirements: ['3+ years experience', 'Python/R', 'Machine Learning', 'SQL'],
         skills: ['Python', 'R', 'Machine Learning', 'SQL', 'Statistics'],
         matchPercentage: 88,
         applicationUrl: 'https://jobs.rbc.com',
         postedDate: new Date('2024-01-10'),
-        source: 'indeed'
+        source: 'INDEED'
     },
     {
         id: '3',
         title: 'Product Manager',
         company: 'Google',
         location: 'Waterloo, ON',
-        salary: { min: 140000, max: 200000, currency: 'CAD' },
+        salary: { min: 140000, max: 200000, currency: JOB.CURRENCY },
         description: 'Lead product strategy and development for next-generation AI-powered applications.',
         requirements: ['5+ years PM experience', 'Technical background', 'User research', 'Analytics'],
         skills: ['Product Management', 'User Research', 'Analytics', 'Technical Skills'],
         matchPercentage: 85,
         applicationUrl: 'https://careers.google.com',
         postedDate: new Date('2024-01-12'),
-        source: 'linkedin'
+        source: 'LINKEDIN'
     },
     {
         id: '4',
         title: 'DevOps Engineer',
         company: 'Amazon',
         location: 'Vancouver, BC',
-        salary: { min: 110000, max: 160000, currency: 'CAD' },
+        salary: { min: 110000, max: 160000, currency: JOB.CURRENCY },
         description: 'Build and maintain cloud infrastructure for high-scale applications.',
         requirements: ['3+ years DevOps', 'AWS/Azure', 'Docker/Kubernetes', 'CI/CD'],
         skills: ['AWS', 'Docker', 'Kubernetes', 'CI/CD', 'Linux'],
         matchPercentage: 78,
         applicationUrl: 'https://amazon.jobs',
         postedDate: new Date('2024-01-08'),
-        source: 'glassdoor'
+        source: 'GLASSDOOR'
     },
     {
         id: '5',
         title: 'UX Designer',
         company: 'Microsoft',
         location: 'Toronto, ON',
-        salary: { min: 90000, max: 130000, currency: 'CAD' },
+        salary: { min: 90000, max: 130000, currency: JOB.CURRENCY },
         description: 'Create intuitive user experiences for enterprise software solutions.',
         requirements: ['3+ years UX design', 'Figma/Sketch', 'User research', 'Prototyping'],
         skills: ['UX Design', 'Figma', 'User Research', 'Prototyping', 'Design Systems'],
         matchPercentage: 82,
         applicationUrl: 'https://careers.microsoft.com',
         postedDate: new Date('2024-01-14'),
-        source: 'linkedin'
+        source: 'LINKEDIN'
     }
 ];
 

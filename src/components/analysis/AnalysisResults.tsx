@@ -15,6 +15,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { AnalysisResult, Skill } from '@/lib/types';
 import SkillsComparison from './SkillsComparison';
+import { ANALYSIS } from '@/lib/constants';
 
 interface AnalysisResultsProps {
     analysisId: string;
@@ -31,18 +32,18 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
             id: analysisId,
             resumeId: 'resume_123',
             originalSkills: [
-                { name: 'Java Development', confidence: 0.95, category: 'technical', relevanceScore: 0.9 },
-                { name: 'Spring Framework', confidence: 0.92, category: 'technical', relevanceScore: 0.85 },
-                { name: 'MySQL Database', confidence: 0.88, category: 'technical', relevanceScore: 0.8 },
-                { name: 'Team Leadership', confidence: 0.85, category: 'soft', relevanceScore: 0.9 },
-                { name: 'Hindi (Native)', confidence: 0.95, category: 'language', relevanceScore: 0.7 },
-                { name: 'English (Fluent)', confidence: 0.9, category: 'language', relevanceScore: 0.95 }
+                { name: 'Java Development', confidence: 0.95, category: 'TECHNICAL', relevanceScore: 0.9 },
+                { name: 'Spring Framework', confidence: 0.92, category: 'TECHNICAL', relevanceScore: 0.85 },
+                { name: 'MySQL Database', confidence: 0.88, category: 'TECHNICAL', relevanceScore: 0.8 },
+                { name: 'Team Leadership', confidence: 0.85, category: 'SOFT', relevanceScore: 0.9 },
+                { name: 'Hindi (Native)', confidence: 0.95, category: 'LANGUAGE', relevanceScore: 0.7 },
+                { name: 'English (Fluent)', confidence: 0.9, category: 'LANGUAGE', relevanceScore: 0.95 }
             ],
             mappedSkills: [
                 {
                     name: 'Full-Stack Development',
                     confidence: 0.95,
-                    category: 'technical',
+                    category: 'TECHNICAL',
                     internationalName: 'Java Development',
                     canadianEquivalent: 'Full-Stack Development',
                     relevanceScore: 0.95
@@ -50,7 +51,7 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                 {
                     name: 'Modern Web Frameworks',
                     confidence: 0.92,
-                    category: 'technical',
+                    category: 'TECHNICAL',
                     internationalName: 'Spring Framework',
                     canadianEquivalent: 'React/Node.js/Angular',
                     relevanceScore: 0.9
@@ -58,7 +59,7 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                 {
                     name: 'Cloud Database Management',
                     confidence: 0.88,
-                    category: 'technical',
+                    category: 'TECHNICAL',
                     internationalName: 'MySQL Database',
                     canadianEquivalent: 'AWS RDS/Azure SQL',
                     relevanceScore: 0.85
@@ -66,7 +67,7 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                 {
                     name: 'Project Management',
                     confidence: 0.85,
-                    category: 'soft',
+                    category: 'SOFT',
                     internationalName: 'Team Leadership',
                     canadianEquivalent: 'Agile Project Management',
                     relevanceScore: 0.9
@@ -74,7 +75,7 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                 {
                     name: 'Multilingual Communication',
                     confidence: 0.9,
-                    category: 'language',
+                    category: 'LANGUAGE',
                     internationalName: 'Hindi (Native)',
                     canadianEquivalent: 'English + Hindi',
                     relevanceScore: 0.8
@@ -82,10 +83,10 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
             ],
             canadianEquivalents: [],
             missingSkills: [
-                { name: 'React.js', confidence: 0.8, category: 'technical', relevanceScore: 0.9 },
-                { name: 'TypeScript', confidence: 0.75, category: 'technical', relevanceScore: 0.85 },
-                { name: 'AWS/Azure', confidence: 0.7, category: 'technical', relevanceScore: 0.8 },
-                { name: 'Agile/Scrum', confidence: 0.8, category: 'soft', relevanceScore: 0.85 }
+                { name: 'React.js', confidence: 0.8, category: 'TECHNICAL', relevanceScore: 0.9 },
+                { name: 'TypeScript', confidence: 0.75, category: 'TECHNICAL', relevanceScore: 0.85 },
+                { name: 'AWS/Azure', confidence: 0.7, category: 'TECHNICAL', relevanceScore: 0.8 },
+                { name: 'Agile/Scrum', confidence: 0.8, category: 'SOFT', relevanceScore: 0.85 }
             ],
             recommendations: [
                 'Complete React.js certification from Udemy or Coursera',
