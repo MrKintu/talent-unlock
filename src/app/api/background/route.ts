@@ -23,7 +23,15 @@ export async function POST(request: NextRequest) {
         const userId = decodedToken.uid;
 
         const data = await request.json();
-        const { countryOfOrigin, targetRole, yearsOfExperience } = data;
+        const {
+            countryOfOrigin,
+            targetRole,
+            yearsOfExperience,
+            socialLinks,
+            skills,
+            goals,
+            achievements
+        } = data;
 
         // Validate required fields
         if (!countryOfOrigin || !targetRole || !yearsOfExperience) {
@@ -40,7 +48,12 @@ export async function POST(request: NextRequest) {
             countryOfOrigin,
             targetRole,
             yearsOfExperience,
-            updatedAt: new Date()
+            updatedAt: new Date(),
+            // Optional fields
+            socialLinks: socialLinks || {},
+            skills: Array.isArray(skills) ? skills : [],
+            goals: Array.isArray(goals) ? goals : [],
+            achievements: Array.isArray(achievements) ? achievements : []
         };
 
         await db.collection('userProfiles').doc(userId).set(profileData, { merge: true });

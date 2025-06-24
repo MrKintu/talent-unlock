@@ -14,6 +14,39 @@ export interface UserProfile {
     targetRole: string;
     yearsOfExperience: string;
     updatedAt: Date;
+    // Social links
+    socialLinks?: {
+        github?: string;
+        linkedin?: string;
+        portfolio?: string;
+    };
+    // Skills with proficiency level
+    skills?: {
+        name: string;
+        proficiency: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+        endorsements?: number;
+    }[];
+    // Goals and achievements
+    goals?: {
+        id: string;
+        title: string;
+        description: string;
+        category: 'career' | 'skills' | 'education' | 'certification';
+        status: 'in_progress' | 'completed' | 'not_started';
+        deadline?: Date;
+        completedAt?: Date;
+        progress?: number;
+    }[];
+    // Digital trophies/badges
+    achievements?: {
+        id: string;
+        title: string;
+        description: string;
+        category: 'skills' | 'career' | 'education' | 'community';
+        earnedAt: Date;
+        icon: string;
+        level: 'bronze' | 'silver' | 'gold' | 'platinum';
+    }[];
 }
 
 export interface ResumeUpload {

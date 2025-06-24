@@ -2,23 +2,23 @@
 
 import { useAuth } from '@/lib/auth/AuthContext';
 import { motion } from 'framer-motion';
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
 import { UserIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function UserProfile() {
     const { user, logout } = useAuth();
 
     if (!user) return null;
-    console.log(user);
 
     return (
-        <Menu>
+        <Menu as="div" className="relative inline-block text-left">
             <MenuButton
                 as={motion.button}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full hover:bg-gray-100 transition-all duration-200 data-[open]:bg-gray-100"
+                className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full hover:bg-gray-100 transition-all duration-200"
             >
                 {user.photoURL ? (
                     <div className="w-8 h-8 rounded-full overflow-hidden relative">
@@ -51,8 +51,16 @@ export default function UserProfile() {
             </MenuButton>
 
             <MenuItems
-                transition
-                className="absolute right-0 mt-2 w-48 origin-top-right bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100 z-50 transition duration-100 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+                as={motion.div}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="absolute mt-2 w-48 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100 z-50"
+                style={{
+                    right: 'auto',
+                    left: '0',
+                    transform: 'translateX(-25%)'
+                }}
             >
                 <div className="px-1 py-1">
                     <div className="px-3 py-2 text-sm text-gray-500">
@@ -61,22 +69,37 @@ export default function UserProfile() {
                 </div>
                 <div className="px-1 py-1">
                     <MenuItem>
-                        <motion.button
-                            whileHover={{ backgroundColor: '#FEF2F2' }}
-                            whileTap={{ scale: 0.95 }}
-                            className="group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:text-red-600 data-[focus]:bg-red-50 data-[focus]:text-red-600 transition-colors duration-200"
-                            onClick={logout}
-                        >
-                            <svg
-                                className="w-4 h-4 mr-2"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                        {({ active }) => (
+                            <Link
+                                href="/profile"
+                                className={`group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium ${active ? 'bg-red-50 text-red-600' : 'text-gray-700'
+                                    }`}
                             >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
-                            </svg>
-                            Sign Out
-                        </motion.button>
+                                <UserIcon className="w-4 h-4 mr-2" />
+                                Profile
+                            </Link>
+                        )}
+                    </MenuItem>
+                    <MenuItem>
+                        {({ active }) => (
+                            <motion.button
+                                whileHover={{ backgroundColor: '#FEF2F2' }}
+                                whileTap={{ scale: 0.95 }}
+                                className={`group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium ${active ? 'bg-red-50 text-red-600' : 'text-gray-700'
+                                    }`}
+                                onClick={logout}
+                            >
+                                <svg
+                                    className="w-4 h-4 mr-2"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
+                                </svg>
+                                Sign Out
+                            </motion.button>
+                        )}
                     </MenuItem>
                 </div>
             </MenuItems>

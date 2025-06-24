@@ -4,9 +4,14 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '@/lib/auth/AuthContext';
+import UserProfile from '@/components/auth/UserProfile';
+import LoginButton from '@/components/auth/LoginButton';
 
 const Navigation = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const { user } = useAuth();
+    console.log(`debug: user`, user);
 
     const navItems = [
         { name: 'Home', href: '/' },
@@ -36,15 +41,26 @@ const Navigation = () => {
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center space-x-8">
-                        <Link href="/upload" className="text-gray-600 hover:text-red-600">
-                            Upload Resume
-                        </Link>
                         <Link href="/jobs" className="text-gray-600 hover:text-red-600">
                             Browse Jobs
                         </Link>
                         <Link href="/analysis" className="text-gray-600 hover:text-red-600">
                             Analysis
                         </Link>
+
+                        {user ? (
+                            <>
+                                <Link
+                                    href="/upload"
+                                    className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium"
+                                >
+                                    Upload Resume
+                                </Link>
+                                <UserProfile />
+                            </>
+                        ) : (
+                            <LoginButton />
+                        )}
                     </div>
                 </div>
 
@@ -55,9 +71,19 @@ const Navigation = () => {
                     className="md:hidden overflow-hidden"
                 >
                     <div className="py-4 space-y-4">
-                        <Link href="/upload" className="block text-gray-600 hover:text-red-600">
-                            Upload Resume
-                        </Link>
+                        {user ? (
+                            <>
+                                <Link
+                                    href="/upload"
+                                    className="block text-gray-600 hover:text-red-600"
+                                >
+                                    Upload Resume
+                                </Link>
+                                <UserProfile />
+                            </>
+                        ) : (
+                            <LoginButton />
+                        )}
                         <Link href="/jobs" className="block text-gray-600 hover:text-red-600">
                             Browse Jobs
                         </Link>
