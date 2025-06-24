@@ -8,16 +8,25 @@ export interface User {
     createdAt: Date;
 }
 
+export interface UserProfile {
+    userId: string;
+    countryOfOrigin: string;
+    targetRole: string;
+    yearsOfExperience: string;
+    updatedAt: Date;
+}
+
 export interface ResumeUpload {
     id: string;
-    userId?: string;
+    userId: string;
     fileName: string;
     fileSize: number;
     fileType: string;
     downloadUrl: string;
     uploadDate: Date;
-    status: 'uploading' | 'processing' | 'completed' | 'error';
-    progress?: number;
+    status: 'completed' | 'error';
+    progress: number;
+    isActive?: boolean;
 }
 
 export interface Skill {
@@ -92,7 +101,7 @@ export interface CareerStep {
 
 export interface UploadProgress {
     progress: number;
-    status: 'uploading' | 'processing' | 'completed' | 'error';
+    status: 'uploading' | 'completed' | 'error';
     message?: string;
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowUpTrayIcon,
@@ -11,25 +11,81 @@ import {
     ArrowRightIcon,
     GlobeAltIcon,
     BriefcaseIcon,
-    ClockIcon
+    ClockIcon,
+    CloudArrowUpIcon,
+    UserIcon,
+    CheckIcon
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
-import { ResumeUpload as ResumeUploadType, UploadProgress } from '@/lib/types';
+import { ResumeUpload as ResumeUploadType, UploadProgress, UserProfile } from '@/lib/types';
+import { useAuth } from '@/lib/auth/AuthContext';
 
-const ResumeUpload = () => {
+export default function ResumeUpload() {
     const router = useRouter();
+    const { user } = useAuth();
     const [isDragOver, setIsDragOver] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [uploadProgress, setUploadProgress] = useState<UploadProgress>({
         progress: 0,
         status: 'uploading'
     });
-    const [userBackground, setUserBackground] = useState({
+    const [userBackground, setUserBackground] = useState<Omit<UserProfile, 'userId'>>({
         countryOfOrigin: '',
         targetRole: '',
-        yearsOfExperience: ''
+        yearsOfExperience: '',
+        updatedAt: new Date()
     });
-    const [currentStep, setCurrentStep] = useState<'upload' | 'background' | 'processing'>('upload');
+    const [currentStep, setCurrentStep] = useState<'upload' | 'background' | 'complete'>('upload');
+    const [resumes, setResumes] = useState<ResumeUploadType[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const steps = [
+        { step: 'upload', label: 'Upload Resume', icon: CloudArrowUpIcon },
+        { step: 'background', label: 'Background Info', icon: UserIcon },
+        { step: 'complete', label: 'Review', icon: CheckIcon }
+    ];
+
+    useEffect(() => {
+        if (user) {
+            fetchUserProfile();
+            fetchResumes();
+        }
+    }, [user]);
+
+    const fetchUserProfile = async () => {
+        try {
+            const response = await fetch('/api/background', {
+                headers: {
+                    'Authorization': `Bearer ${await user?.getIdToken()}`
+                }
+            });
+            const data = await response.json();
+            if (data.success && data.data) {
+                setUserBackground(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    };
+
+    const fetchResumes = async () => {
+        try {
+            setIsLoading(true);
+            const response = await fetch('/api/resumes', {
+                headers: {
+                    'Authorization': `Bearer ${await user?.getIdToken()}`
+                }
+            });
+            const data = await response.json();
+            if (data.success && data.data) {
+                setResumes(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching resumes:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleDragOver = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -76,58 +132,100 @@ const ResumeUpload = () => {
     };
 
     const handleBackgroundSubmit = async () => {
-        if (!selectedFile || !userBackground.countryOfOrigin || !userBackground.targetRole) {
-            alert('Please fill in all required fields.');
-            return;
-        }
-
-        setCurrentStep('processing');
-        setUploadProgress({ progress: 0, status: 'uploading' });
-
         try {
-            // Simulate upload progress
-            for (let i = 0; i <= 100; i += 10) {
-                setUploadProgress({ progress: i, status: 'uploading' });
-                await new Promise(resolve => setTimeout(resolve, 200));
-            }
-
-            // Create FormData for upload
-            const formData = new FormData();
-            formData.append('file', selectedFile);
-            formData.append('userId', 'anonymous');
-
-            // Upload file
-            const uploadResponse = await fetch('/api/upload', {
+            const response = await fetch('/api/background', {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${await user?.getIdToken()}`
+                },
+                body: JSON.stringify({
+                    ...userBackground,
+                    userId: user?.uid
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setCurrentStep('complete');
+            }
+        } catch (error) {
+            console.error('Error saving background:', error);
+        }
+    };
+
+    const handleFileUpload = async (file: File) => {
+        try {
+            setUploadProgress({
+                progress: 0,
+                status: 'uploading'
+            });
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${await user?.getIdToken()}`
+                },
                 body: formData
             });
 
-            if (!uploadResponse.ok) {
-                throw new Error('Upload failed');
-            }
+            const data = await response.json();
 
-            const uploadResult = await uploadResponse.json();
-
-            if (uploadResult.success) {
-                setUploadProgress({ progress: 100, status: 'completed' });
-
-                // Simulate analysis processing
-                setTimeout(() => {
-                    // Navigate to analysis page with mock ID
-                    const analysisId = `analysis_${Date.now()}`;
-                    router.push(`/analysis/${analysisId}`);
-                }, 1000);
+            if (data.success) {
+                await handleUploadSuccess(data.data.downloadUrl);
             } else {
-                throw new Error(uploadResult.error || 'Upload failed');
+                setUploadProgress({
+                    progress: 0,
+                    status: 'error'
+                });
             }
-
         } catch (error) {
             console.error('Upload error:', error);
             setUploadProgress({
                 progress: 0,
-                status: 'error',
-                message: 'Upload failed. Please try again.'
+                status: 'error'
             });
+        }
+    };
+
+    const handleDeleteResume = async (resumeId: string) => {
+        try {
+            const response = await fetch('/api/resumes', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${await user?.getIdToken()}`
+                },
+                body: JSON.stringify({ resumeId })
+            });
+
+            if (response.ok) {
+                await fetchResumes();
+            }
+        } catch (error) {
+            console.error('Error deleting resume:', error);
+        }
+    };
+
+    const handleSetActiveResume = async (resumeId: string) => {
+        try {
+            const response = await fetch('/api/resumes', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${await user?.getIdToken()}`
+                },
+                body: JSON.stringify({ resumeId })
+            });
+
+            if (response.ok) {
+                await fetchResumes();
+            }
+        } catch (error) {
+            console.error('Error setting active resume:', error);
         }
     };
 
@@ -139,9 +237,29 @@ const ResumeUpload = () => {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
+    const handleUploadSuccess = async (downloadUrl: string) => {
+        try {
+            // Update upload progress
+            setUploadProgress({
+                progress: 100,
+                status: 'completed'
+            });
+
+            // Move to background step
+            setCurrentStep('background');
+
+        } catch (error) {
+            console.error('Upload error:', error);
+            setUploadProgress({
+                progress: 0,
+                status: 'error'
+            });
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50">
-            <div className="container mx-auto px-6 pt-20 pb-16">
+        <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -169,35 +287,33 @@ const ResumeUpload = () => {
                     </div>
 
                     {/* Progress Steps */}
-                    <div className="flex justify-center mb-12">
-                        <div className="flex items-center space-x-4">
-                            {[
-                                { step: 'upload', label: 'Upload Resume', icon: ArrowUpTrayIcon },
-                                { step: 'background', label: 'Background Info', icon: GlobeAltIcon },
-                                { step: 'processing', label: 'AI Analysis', icon: BriefcaseIcon }
-                            ].map((stepInfo, index) => (
-                                <React.Fragment key={stepInfo.step}>
-                                    <motion.div
-                                        className={`flex flex-col items-center ${currentStep === stepInfo.step ? 'text-red-600' : 'text-gray-400'
-                                            }`}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.2 }}
-                                    >
-                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${currentStep === stepInfo.step
+                    <div className="flex justify-center mb-8">
+                        <nav className="flex items-center space-x-4" aria-label="Progress">
+                            {steps.map(({ step, label, icon: Icon }) => (
+                                <div key={step} className="flex items-center">
+                                    <div
+                                        className={`flex items-center justify-center w-8 h-8 rounded-full ${currentStep === step
                                             ? 'bg-red-600 text-white'
-                                            : 'bg-gray-200 text-gray-600'
-                                            }`}>
-                                            <stepInfo.icon className="w-6 h-6" />
-                                        </div>
-                                        <span className="text-sm font-medium">{stepInfo.label}</span>
-                                    </motion.div>
-                                    {index < 2 && (
-                                        <div className="w-8 h-0.5 bg-gray-300" />
+                                            : steps.indexOf({ step: currentStep, label: '', icon: CloudArrowUpIcon }) >
+                                                steps.indexOf({ step, label: '', icon: CloudArrowUpIcon })
+                                                ? 'bg-red-200 text-red-700'
+                                                : 'bg-gray-200 text-gray-400'
+                                            }`}
+                                    >
+                                        <Icon className="w-5 h-5" />
+                                    </div>
+                                    <span
+                                        className={`ml-2 text-sm font-medium ${currentStep === step ? 'text-red-600' : 'text-gray-500'
+                                            }`}
+                                    >
+                                        {label}
+                                    </span>
+                                    {step !== 'complete' && (
+                                        <div className="ml-4 w-8 h-0.5 bg-gray-200"></div>
                                     )}
-                                </React.Fragment>
+                                </div>
                             ))}
-                        </div>
+                        </nav>
                     </div>
 
                     <AnimatePresence mode="wait">
@@ -367,52 +483,58 @@ const ResumeUpload = () => {
                             </motion.div>
                         )}
 
-                        {currentStep === 'processing' && (
+                        {currentStep === 'complete' && (
                             <motion.div
-                                key="processing"
-                                initial={{ opacity: 0, x: -50 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 50 }}
-                                className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 text-center"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20"
                             >
-                                <motion.div
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                    className="w-16 h-16 border-4 border-red-200 border-t-red-600 rounded-full mx-auto mb-6"
-                                />
+                                <h2 className="text-2xl font-bold text-gray-800 mb-6">Your Resumes</h2>
 
-                                <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                                    {uploadProgress.status === 'completed' ? 'Analysis Complete!' : 'Analyzing Your Resume...'}
-                                </h2>
-
-                                <p className="text-gray-600 mb-6">
-                                    {uploadProgress.status === 'completed'
-                                        ? 'Your skills have been mapped to Canadian standards. Redirecting to results...'
-                                        : 'Our AI is extracting your skills and mapping them to Canadian equivalents'
-                                    }
-                                </p>
-
-                                <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
-                                    <motion.div
-                                        className="bg-gradient-to-r from-red-500 to-red-600 h-3 rounded-full"
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${uploadProgress.progress}%` }}
-                                        transition={{ duration: 0.5 }}
-                                    />
-                                </div>
-
-                                <p className="text-sm text-gray-500">
-                                    {uploadProgress.progress}% complete
-                                </p>
-
-                                {uploadProgress.status === 'error' && (
-                                    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                        <div className="flex items-center gap-2 text-red-600">
-                                            <ExclamationCircleIcon className="w-5 h-5" />
-                                            <span>{uploadProgress.message}</span>
-                                        </div>
+                                {isLoading ? (
+                                    <div className="flex justify-center">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+                                    </div>
+                                ) : resumes.length === 0 ? (
+                                    <p className="text-gray-600 text-center">No resumes uploaded yet.</p>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {resumes.map((resume) => (
+                                            <div key={resume.id} className="flex items-center justify-between bg-white p-4 rounded-lg shadow">
+                                                <div>
+                                                    <p className="font-medium">{resume.fileName}</p>
+                                                    <p className="text-sm text-gray-500">
+                                                        Uploaded on {new Date(resume.uploadDate).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                                <div className="flex space-x-2">
+                                                    <button
+                                                        onClick={() => handleSetActiveResume(resume.id)}
+                                                        className={`px-3 py-1 rounded ${resume.isActive
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                                            }`}
+                                                    >
+                                                        {resume.isActive ? 'Active' : 'Set Active'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteResume(resume.id)}
+                                                        className="px-3 py-1 rounded bg-red-100 text-red-800 hover:bg-red-200"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
+
+                                <button
+                                    onClick={() => setCurrentStep('upload')}
+                                    className="mt-6 w-full bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-colors"
+                                >
+                                    Upload Another Resume
+                                </button>
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -420,6 +542,4 @@ const ResumeUpload = () => {
             </div>
         </div>
     );
-};
-
-export default ResumeUpload;
+}
