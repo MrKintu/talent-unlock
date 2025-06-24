@@ -1,0 +1,71 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ApiResponse, ResumeUpload } from '@/lib/types';
+
+export async function POST(request: NextRequest) {
+    try {
+        const formData = await request.formData();
+        const file = formData.get('file') as File;
+        const userId = formData.get('userId') as string;
+
+        if (!file) {
+            return NextResponse.json<ApiResponse<null>>({
+                success: false,
+                error: 'No file provided'
+            }, { status: 400 });
+        }
+
+        // Validate file type
+        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!allowedTypes.includes(file.type)) {
+            return NextResponse.json<ApiResponse<null>>({
+                success: false,
+                error: 'Invalid file type. Please upload a PDF or Word document.'
+            }, { status: 400 });
+        }
+
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+            return NextResponse.json<ApiResponse<null>>({
+                success: false,
+                error: 'File size too large. Please upload a file smaller than 10MB.'
+            }, { status: 400 });
+        }
+
+        // Generate unique filename
+        const timestamp = Date.now();
+        const fileName = `resumes/${userId || 'anonymous'}/${timestamp}_${file.name}`;
+        const storageRef = ref(storage, fileName);
+
+        // Upload file to Firebase Storage
+        const snapshot = await uploadBytes(storageRef, file);
+        const downloadUrl = await getDownloadURL(snapshot.ref);
+
+        // Create upload record
+        const uploadData: ResumeUpload = {
+            id: `${timestamp}_${Math.random().toString(36).substr(2, 9)}`,
+            userId,
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type,
+            downloadUrl,
+            uploadDate: new Date(),
+            status: 'completed',
+            progress: 100
+        };
+
+        return NextResponse.json<ApiResponse<ResumeUpload>>({
+            success: true,
+            data: uploadData,
+            message: 'File uploaded successfully'
+        });
+
+    } catch (error) {
+        console.error('Upload error:', error);
+        return NextResponse.json<ApiResponse<null>>({
+            success: false,
+            error: 'Failed to upload file'
+        }, { status: 500 });
+    }
+}
