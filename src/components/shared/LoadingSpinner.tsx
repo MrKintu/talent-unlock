@@ -1,9 +1,19 @@
 'use client';
 
-export default function LoadingSpinner() {
+interface LoadingSpinnerProps {
+    size?: 'small' | 'medium' | 'large';
+}
+
+export default function LoadingSpinner({ size = 'medium' }: LoadingSpinnerProps) {
+    const sizeClasses = {
+        small: 'w-4 h-4',
+        medium: 'w-8 h-8',
+        large: 'w-12 h-12'
+    };
+
     return (
-        <div className="flex items-center justify-center min-h-[200px]">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="flex justify-center items-center">
+            <div className={`${sizeClasses[size]} animate-spin rounded-full border-2 border-gray-300 border-t-red-600`} />
         </div>
     );
 }

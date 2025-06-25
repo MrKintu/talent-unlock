@@ -136,13 +136,13 @@ export default function ProfilePage() {
                         onUpdate={handleUpdate}
                     />
 
-                    <SkillsSection
+                    {/* <SkillsSection
                         profile={profile}
                         isEditing={isEditing}
                         onUpdate={handleUpdate}
                     />
 
-                    <AchievementsSection profile={profile} />
+                    <AchievementsSection profile={profile} /> */}
 
                     <ResumeManager />
                 </div>

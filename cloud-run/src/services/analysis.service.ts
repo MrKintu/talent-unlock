@@ -57,7 +57,7 @@ export class AnalysisService {
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             const technicalResults = await this.technicalSkillsAnalyzer.analyze({ userId, resumeId, resumeText });
-
+            console.log('debug: technicalResults', technicalResults);
             // Update analysis record with results
             await analysisRef.update({
                 status: 'completed',
