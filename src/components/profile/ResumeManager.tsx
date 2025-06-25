@@ -8,6 +8,7 @@ import { analysisService } from '@/lib/services/analysisService';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import { Analysis } from '@/lib/types';
 import { formatDateWithTime } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 export default function ResumeManager() {
     const { user } = useAuth();
@@ -17,6 +18,7 @@ export default function ResumeManager() {
     const [error, setError] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState<string | null>(null);
     const [analyses, setAnalyses] = useState<Record<string, Analysis>>({});
+    const router = useRouter();
 
     const fetchResumes = async () => {
         if (!user) return;
@@ -103,7 +105,14 @@ export default function ResumeManager() {
 
         try {
             const token = await user.getIdToken();
-            const response = await analysisService.startAnalysis(token, resumeId);
+            let response = null;
+            if (analyses?.[resumeId]?.id) {
+                response = await analysisService.retryAnalysis(token, resumeId, analyses?.[resumeId]?.id);
+            } else {
+                // create analysis
+                response = await analysisService.startAnalysis(token, resumeId);
+            }
+
             if (response.success) {
                 setAnalyses(prev => ({
                     ...prev,
@@ -167,18 +176,38 @@ export default function ResumeManager() {
                                 </p>
                             </div>
                             <div className="flex items-center space-x-2">
-                                {/* {analyses[resume.id] ? (
-                                    <span className={`px-2 py-1 rounded-full text-xs ${analyses[resume.id].status === 'completed' ? 'bg-green-100 text-green-800' :
-                                        analyses[resume.id].status === 'failed' ? 'bg-red-100 text-red-800' :
-                                            'bg-yellow-100 text-yellow-800'
-                                        }`}>
-                                        {analyses[resume.id].status}
-                                    </span>
-                                ) : (
+                                {/* Status and Actions */}
+                                <div className="flex items-center gap-2">
+                                    {/* Status Badge */}
+                                    {analyses[resume.id] && (
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${analyses[resume.id].status === 'completed'
+                                            ? 'bg-green-100 text-green-800'
+                                            : analyses[resume.id].status === 'failed'
+                                                ? 'bg-red-100 text-red-800'
+                                                : 'bg-yellow-100 text-yellow-800'
+                                            }`}>
+                                            {analyses[resume.id].status}
+                                        </span>
+                                    )}
+
+                                    {/* View Analysis Button */}
+                                    {analyses[resume.id] && analyses[resume.id].status === 'completed' && (
+                                        <button
+                                            onClick={() => router.push(`/analysis/${analyses[resume.id].id}`)}
+                                            className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors"
+                                        >
+                                            View Analysis
+                                        </button>
+                                    )}
+
+                                    {/* Analyze/Retry Button */}
                                     <button
                                         onClick={() => handleAnalyze(resume.id)}
                                         disabled={isAnalyzing === resume.id}
-                                        className="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded-full hover:bg-red-700 disabled:opacity-50"
+                                        className={`px-3 py-1 text-sm font-medium rounded-full transition-colors ${analyses[resume.id]?.status === 'failed'
+                                            ? 'text-white bg-orange-600 hover:bg-orange-700'
+                                            : 'text-white bg-red-600 hover:bg-red-700'
+                                            } disabled:opacity-50`}
                                     >
                                         {isAnalyzing === resume.id ? (
                                             <div className="flex items-center space-x-1">
@@ -186,41 +215,10 @@ export default function ResumeManager() {
                                                 <span>Analyzing...</span>
                                             </div>
                                         ) : (
-                                            'Analyze'
+                                            analyses?.[resume?.id]?.id ? 'Retry Analyze' : 'Analyze'
                                         )}
                                     </button>
-                                )} */}
-                                {analyses[resume.id] &&
-                                    <span className={`px-2 py-1 rounded-full text-xs ${analyses[resume.id].status === 'completed' ? 'bg-green-100 text-green-800' :
-                                        analyses[resume.id].status === 'failed' ? 'bg-red-100 text-red-800' :
-                                            'bg-yellow-100 text-yellow-800'
-                                        }`}>
-                                        {analyses[resume.id].status}
-                                    </span>
-                                }
-
-                                <button
-                                    onClick={() => handleAnalyze(resume.id)}
-                                    disabled={isAnalyzing === resume.id}
-                                    className="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded-full hover:bg-red-700 disabled:opacity-50"
-                                >
-                                    {isAnalyzing === resume.id ? (
-                                        <div className="flex items-center space-x-1">
-                                            <LoadingSpinner size="small" />
-                                            <span>Analyzing...</span>
-                                        </div>
-                                    ) : (
-                                        'Analyze'
-                                    )}
-                                </button>
-                                {analyses[resume.id]?.status === 'completed' && (
-                                    <a
-                                        href={`/analysis/${analyses[resume.id].id}`}
-                                        className="text-sm text-red-600 hover:text-red-800"
-                                    >
-                                        View Analysis
-                                    </a>
-                                )}
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -6,6 +6,8 @@ import { AhaMomentsAnalyzer } from '../analyze/helpers/aha-moments-analyzer';
 interface CreateAnalysisRequest {
     userId: string;
     resumeId: string;
+    analysisId?: string;
+    retry?: boolean;
 }
 
 export interface AnalysisResponse {
@@ -25,12 +27,15 @@ export class AnalysisService {
     private static ahaAnalyzer = new AhaMomentsAnalyzer();
 
     static async create(request: CreateAnalysisRequest) {
-        const { userId, resumeId } = request;
+        const { userId, resumeId, analysisId = null, retry = false } = request;
 
         console.log('Creating analysis', {
             userId,
-            resumeId
+            resumeId,
+            analysisId,
+            retry
         });
+
         // Get User data
         const userDoc = await db.collection('userProfile').doc(userId).get();
         if (!userDoc.exists) {
@@ -50,21 +55,62 @@ export class AnalysisService {
             throw new Error('Resume text is empty');
         }
 
-        // Create analysis record
-        const analysisRef = await db.collection('analysis').add({
-            userId,
-            resumeId,
-            status: 'processing',
-            createdAt: new Date(),
-            updatedAt: new Date()
-        });
+        // Check if analysis already exists for this resume and user
+        const existingAnalysisQuery = await db.collection('analysis')
+            .where('resumeId', '==', resumeId)
+            .where('userId', '==', userId)
+            .orderBy('updatedAt', 'desc')
+            .limit(1)
+            .get();
+
+        let analysisRef;
+        let isNewAnalysis = false;
+
+        if (existingAnalysisQuery.docs.length > 0) {
+            // Analysis exists
+            const existingAnalysis = existingAnalysisQuery.docs[0];
+            analysisRef = db.collection('analysis').doc(existingAnalysis.id);
+
+            if (retry) {
+                // Retry: Update existing analysis to processing
+                await analysisRef.update({
+                    status: 'processing',
+                    error: null,
+                    completedAt: null,
+                    profileResults: null,
+                    technicalResults: null,
+                    ahaResults: null,
+                    updatedAt: new Date()
+                });
+            } else {
+                // Return existing analysis without processing
+                const existingData = existingAnalysis.data();
+                return {
+                    id: existingAnalysis.id,
+                    status: existingData?.status || 'unknown',
+                    profileResults: existingData?.profileResults,
+                    technicalResults: existingData?.technicalResults,
+                    ahaResults: existingData?.ahaResults
+                };
+            }
+        } else {
+            // Create new analysis record
+            analysisRef = await db.collection('analysis').add({
+                userId,
+                resumeId,
+                status: 'processing',
+                createdAt: new Date(),
+                updatedAt: new Date()
+            });
+            isNewAnalysis = true;
+        }
 
         // Run analyses sequentially with delay to avoid rate limiting
         try {
             // Run profile analysis first
             const profileResults = await this.profileAnalyzer.analyze({ userId, resumeId, resumeText });
 
-            // Wait 2 seconds before running technical skills analysis
+            // Wait 5 seconds before running technical skills analysis
             await new Promise(resolve => setTimeout(resolve, 5000));
 
             const technicalResults = await this.technicalSkillsAnalyzer.analyze({ userId, resumeId, resumeText });
@@ -72,6 +118,7 @@ export class AnalysisService {
             await new Promise(resolve => setTimeout(resolve, 5000));
 
             const ahaResults = await this.ahaAnalyzer.analyze({ userId, resumeId, resumeText, userData });
+
             // Update analysis record with results
             await analysisRef.update({
                 status: 'completed',

@@ -73,6 +73,17 @@ class AnalysisService {
         return response.json();
     }
 
+    async retryAnalysis(token: string, resumeId: string, analysisId: string): Promise<AnalysisResponse> {
+        const response = await fetch(`/api/analyze`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ resumeId, analysisId, retry: true })
+        });
+        return response.json();
+    }
+
     async getAnalysisList(token: string): Promise<{ success: boolean; data: Analysis[]; message?: string }> {
         const response = await fetch('/api/analyze', {
             headers: {

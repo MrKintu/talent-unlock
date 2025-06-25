@@ -2,6 +2,10 @@ import { Router, Request, Response, NextFunction, RequestHandler } from 'express
 import { auth } from './../lib/firebase-admin';
 import { AnalysisService } from '../services/analysis.service';
 import { ApiError } from '../utils/api-error';
+import { ProfileAnalyzer } from './helpers/profile-analyzer';
+import { TechnicalSkillsAnalyzer } from './helpers/technical-skills-analyzer';
+import { AhaMomentsAnalyzer } from './helpers/aha-moments-analyzer';
+import { RoadmapAnalyzer } from './helpers/roadmap-analyzer';
 
 interface AuthRequest extends Request {
     userId: string;
@@ -44,18 +48,20 @@ const getAnalyses: RequestHandler = async (req, res) => {
 // Create new analysis
 const createAnalysis: RequestHandler = async (req, res) => {
     try {
-        const { resumeId } = req.body;
+        const { resumeId, analysisId = null, retry = false } = req.body;
         if (!resumeId) {
             throw new ApiError('Resume ID is required', 400);
         }
         console.log('debug: Creating analysis', {
             userId: (req as AuthRequest).userId,
-            resumeId: req.body.resumeId
+            body: req.body
         });
 
         const analysis = await AnalysisService.create({
             userId: (req as AuthRequest).userId,
-            resumeId
+            resumeId,
+            analysisId,
+            retry
         });
 
         res.json({ success: true, data: analysis });
@@ -92,6 +98,54 @@ const getAnalysisById: RequestHandler = async (req, res) => {
         }
     }
 };
+
+// Profile analysis endpoint
+router.post('/profile', verifyAuth, async (req, res) => {
+    try {
+        const analyzer = new ProfileAnalyzer();
+        const result = await analyzer.analyze(req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('Profile analysis error:', error);
+        res.status(500).json({ success: false, error: 'Analysis failed' });
+    }
+});
+
+// Technical skills analysis endpoint
+router.post('/technical', verifyAuth, async (req, res) => {
+    try {
+        const analyzer = new TechnicalSkillsAnalyzer();
+        const result = await analyzer.analyze(req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('Technical analysis error:', error);
+        res.status(500).json({ success: false, error: 'Analysis failed' });
+    }
+});
+
+// Aha moments analysis endpoint
+router.post('/aha', verifyAuth, async (req, res) => {
+    try {
+        const analyzer = new AhaMomentsAnalyzer();
+        const result = await analyzer.analyze(req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('Aha analysis error:', error);
+        res.status(500).json({ success: false, error: 'Analysis failed' });
+    }
+});
+
+// Roadmap generation endpoint
+router.post('/roadmap/generate', verifyAuth, async (req, res) => {
+    try {
+        const analyzer = new RoadmapAnalyzer();
+        const result = await analyzer.analyze(req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('Roadmap generation error:', error);
+        res.status(500).json({ success: false, error: 'Roadmap generation failed' });
+    }
+});
 
 router.get('/', verifyAuth, getAnalyses);
 router.post('/', verifyAuth, createAnalysis);

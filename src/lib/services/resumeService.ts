@@ -43,6 +43,16 @@ class ResumeService {
         return response.json();
     }
 
+    async listResumesWithAnalysis(token: string): Promise<ResumeListResponse> {
+        const response = await fetch('/api/resumes/analysis', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        return response.json();
+    }
+
     async deleteResume(token: string, resumeId: string): Promise<{ success: boolean; message?: string; error?: string }> {
         const response = await fetch('/api/resumes', {
             method: 'DELETE',
