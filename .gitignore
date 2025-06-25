@@ -42,3 +42,7 @@ documentai-key.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cloud Run
+cloud-run/node_modules
+cloud-run/dist
