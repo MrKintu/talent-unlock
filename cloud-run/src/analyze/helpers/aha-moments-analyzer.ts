@@ -3,7 +3,7 @@ import { model } from '../../lib/vertexai';
 import { AnalysisRequest, AhaAnalysis } from '../../types/analysis';
 
 export class AhaMomentsAnalyzer extends BaseAnalyzer<AhaAnalysis> {
-  protected buildPrompt(resumeText: string): string {
+  protected buildPrompt(request: AnalysisRequest): string {
     return `You are an AI specialized in identifying hidden talents and their international equivalents.
 Analyze the following resume and identify skills or experiences that might have different names
 or higher value in the Canadian market. Focus on:
@@ -14,7 +14,7 @@ or higher value in the Canadian market. Focus on:
 5. Regional expertise or specializations
 
 Resume text:
-${resumeText}
+${request.resumeText}
 
 Return a JSON object with exactly this structure:
 {

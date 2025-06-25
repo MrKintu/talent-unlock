@@ -48,6 +48,10 @@ const createAnalysis: RequestHandler = async (req, res) => {
         if (!resumeId) {
             throw new ApiError('Resume ID is required', 400);
         }
+        console.log('debug: Creating analysis', {
+            userId: (req as AuthRequest).userId,
+            resumeId: req.body.resumeId
+        });
 
         const analysis = await AnalysisService.create({
             userId: (req as AuthRequest).userId,

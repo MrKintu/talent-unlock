@@ -18,12 +18,30 @@ interface RawEducation {
     degree?: string;
     institution?: string;
     year?: number;
+    country?: string;
+    accreditation?: string;
+    credibilityScore?: number;
+    recognitionStatus?: string;
+    gapAnalysis?: {
+        missingRequirements?: string[];
+        additionalSteps?: string[];
+        estimatedTimeToEquivalency?: number;
+        licensingExamsRequired?: string[];
+    };
+    equivalency?: {
+        localEquivalent?: string;
+        coveragePercentage?: number;
+        recognizingBodies?: string[];
+    };
 }
 
 interface RawRecommendation {
     type?: string;
     description?: string;
     priority?: string;
+    category?: string;
+    actionable?: boolean;
+    timeframe?: string;
 }
 
 interface RawProfileAnalysis {
@@ -34,7 +52,8 @@ interface RawProfileAnalysis {
 }
 
 export class ProfileAnalyzer extends BaseAnalyzer<ProfileAnalysis> {
-    protected buildPrompt(resumeText: string): string {
+    protected buildPrompt(request: AnalysisRequest): string {
+        const { resumeText } = request;
         return `You are a resume analysis AI. Your task is to analyze the resume text and return ONLY a JSON object with no additional text, markdown formatting, or explanation.
 
 Resume Text:
@@ -61,23 +80,58 @@ Return a JSON object with exactly this structure:
     {
       "degree": "degree name (max 100 chars)",
       "institution": "institution name (max 100 chars)",
-      "year": 2020
+      "year": 2020,
+      "country": "country where degree was obtained",
+      "accreditation": "recognized/unrecognized/pending_verification",
+      "credibilityScore": 0.85,
+      "recognitionStatus": "fully_recognized/partially_recognized/requires_assessment/not_recognized",
+      "gapAnalysis": {
+        "missingRequirements": ["specific courses or requirements missing"],
+        "additionalSteps": ["credential evaluation", "licensing exam", "bridge courses"],
+        "estimatedTimeToEquivalency": 12,
+        "licensingExamsRequired": ["specific exam names if applicable"]
+      },
+      "equivalency": {
+        "localEquivalent": "equivalent degree/diploma in target location",
+        "coveragePercentage": 80,
+        "recognizingBodies": ["WES", "ICAS", "IQAS", "relevant professional bodies"]
+      }
     }
   ],
   "recommendations": [
     {
-      "type": "skill/certification/experience",
+      "type": "skill/certification/experience/education_upgrade",
       "description": "detailed recommendation (max 200 chars)",
-      "priority": "high/medium/low"
+      "priority": "high/medium/low",
+      "category": "immediate/short_term/long_term",
+      "actionable": true,
+      "timeframe": "1-3 months/3-6 months/6-12 months/1+ years"
     }
   ]
 }
+
+GAP ANALYSIS GUIDELINES:
+- If the user has a gap in their education, provide a recommendation to upgrade their education.
+- If the user has a gap in their skills, provide a recommendation to upgrade their skills.
+- If the user has a gap in their experience, provide a recommendation to upgrade their experience.
+- If the user has a gap in their certifications, provide a recommendation to upgrade their certifications.
+- If the user has a gap in their projects, provide a recommendation to upgrade their projects.
+
+RECOMMENDATIONS GUIDELINES:
+- If the user has a gap in their education, provide a recommendation to upgrade their education.
+- If the user has a gap in their skills, provide a recommendation to upgrade their skills.
+- If the user has a gap in their experience, provide a recommendation to upgrade their experience.
+- If the user has a gap in their certifications, provide a recommendation to upgrade their certifications.
+- If the user has a gap in their projects, provide a recommendation to upgrade their projects.
+- If the user has a gap in their tools, provide a recommendation to upgrade their tools.
+- If the user has a gap in their methodologies, provide a recommendation to upgrade their methodologies.
 
 IMPORTANT:
 1. Return ONLY the JSON object. Do not include any markdown formatting, explanations, or additional text.
 2. Strictly follow the character limits for each field.
 3. For experience highlights, include at most 5 most important achievements.
-4. Ensure all strings are properly escaped and terminated.`;
+4. Ensure all strings are properly escaped and terminated.
+5. For education analysis, provide realistic assessments of international credential recognition and equivalency.`;
     }
 
     protected parseResponse(text: string): ProfileAnalysis {
@@ -122,16 +176,59 @@ IMPORTANT:
                 education: Array.isArray(parsed.education) ? parsed.education.map(edu => ({
                     degree: String(edu.degree || '').slice(0, 100),
                     institution: String(edu.institution || '').slice(0, 100),
-                    year: typeof edu.year === 'number' && Number.isInteger(edu.year) ? edu.year : null
+                    year: typeof edu.year === 'number' && Number.isInteger(edu.year) ? edu.year : null,
+                    country: String(edu.country || ''),
+                    accreditation: (['recognized', 'unrecognized', 'pending_verification'].includes(edu.accreditation as string)
+                        ? edu.accreditation
+                        : 'pending_verification') as 'recognized' | 'unrecognized' | 'pending_verification',
+                    credibilityScore: Number(edu.credibilityScore) || 0.5,
+                    recognitionStatus: (['fully_recognized', 'partially_recognized', 'requires_assessment', 'not_recognized'].includes(edu.recognitionStatus as string)
+                        ? edu.recognitionStatus
+                        : 'requires_assessment') as 'fully_recognized' | 'partially_recognized' | 'requires_assessment' | 'not_recognized',
+                    gapAnalysis: edu.gapAnalysis ? {
+                        missingRequirements: Array.isArray(edu.gapAnalysis.missingRequirements)
+                            ? edu.gapAnalysis.missingRequirements.map(req => String(req))
+                            : [],
+                        additionalSteps: Array.isArray(edu.gapAnalysis.additionalSteps)
+                            ? edu.gapAnalysis.additionalSteps.map(step => String(step))
+                            : [],
+                        estimatedTimeToEquivalency: Number(edu.gapAnalysis.estimatedTimeToEquivalency) || 0,
+                        licensingExamsRequired: Array.isArray(edu.gapAnalysis.licensingExamsRequired)
+                            ? edu.gapAnalysis.licensingExamsRequired.map(exam => String(exam))
+                            : []
+                    } : {
+                        missingRequirements: [],
+                        additionalSteps: [],
+                        estimatedTimeToEquivalency: 0,
+                        licensingExamsRequired: []
+                    },
+                    equivalency: edu.equivalency ? {
+                        localEquivalent: String(edu.equivalency.localEquivalent || ''),
+                        coveragePercentage: Number(edu.equivalency.coveragePercentage) || 0,
+                        recognizingBodies: Array.isArray(edu.equivalency.recognizingBodies)
+                            ? edu.equivalency.recognizingBodies.map(body => String(body))
+                            : []
+                    } : {
+                        localEquivalent: '',
+                        coveragePercentage: 0,
+                        recognizingBodies: []
+                    }
                 })) : [],
                 recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations.map(rec => ({
-                    type: (['skill', 'certification', 'experience'].includes(rec.type as string)
+                    type: (['skill', 'certification', 'experience', 'education_upgrade'].includes(rec.type as string)
                         ? rec.type
-                        : 'skill') as 'skill' | 'certification' | 'experience',
+                        : 'skill') as 'skill' | 'certification' | 'experience' | 'education_upgrade',
                     description: String(rec.description || '').slice(0, 200),
                     priority: (['high', 'medium', 'low'].includes(rec.priority as string)
                         ? rec.priority
-                        : 'medium') as 'high' | 'medium' | 'low'
+                        : 'medium') as 'high' | 'medium' | 'low',
+                    category: (['immediate', 'short_term', 'long_term'].includes(rec.category as string)
+                        ? rec.category
+                        : 'short_term') as 'immediate' | 'short_term' | 'long_term',
+                    actionable: Boolean(rec.actionable),
+                    timeframe: (['1-3 months', '3-6 months', '6-12 months', '1+ years'].includes(rec.timeframe as string)
+                        ? rec.timeframe
+                        : '3-6 months') as '1-3 months' | '3-6 months' | '6-12 months' | '1+ years'
                 })) : []
             };
         } catch (error) {

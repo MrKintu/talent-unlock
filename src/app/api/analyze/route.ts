@@ -14,6 +14,7 @@ export async function POST(request: Request) {
     if (!cloudRunUrl) {
       throw new Error('Resume analysis service URL not configured');
     }
+    console.log('Analyzing resume');
 
     // Forward the request with the same body and auth header
     const response = await fetch(`${cloudRunUrl}/analyze/`, {

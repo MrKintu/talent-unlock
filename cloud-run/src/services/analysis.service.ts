@@ -27,6 +27,17 @@ export class AnalysisService {
     static async create(request: CreateAnalysisRequest) {
         const { userId, resumeId } = request;
 
+        console.log('Creating analysis', {
+            userId,
+            resumeId
+        });
+        // Get User data
+        const userDoc = await db.collection('userProfile').doc(userId).get();
+        if (!userDoc.exists) {
+            throw new Error('User not found');
+        }
+        const userData = userDoc.data();
+
         // Get resume data
         const resumeDoc = await db.collection('resumes').doc(resumeId).get();
         if (!resumeDoc.exists) {
@@ -60,7 +71,7 @@ export class AnalysisService {
 
             await new Promise(resolve => setTimeout(resolve, 5000));
 
-            const ahaResults = await this.ahaAnalyzer.analyze({ userId, resumeId, resumeText });
+            const ahaResults = await this.ahaAnalyzer.analyze({ userId, resumeId, resumeText, userData });
             // Update analysis record with results
             await analysisRef.update({
                 status: 'completed',

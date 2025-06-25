@@ -174,17 +174,35 @@ export interface Analysis {
             degree: string;
             institution: string;
             year: number;
+            country?: string;
+            accreditation?: 'recognized' | 'unrecognized' | 'pending_verification';
+            credibilityScore?: number;
+            recognitionStatus?: 'fully_recognized' | 'partially_recognized' | 'requires_assessment' | 'not_recognized';
+            gapAnalysis?: {
+                missingRequirements: string[];
+                additionalSteps: string[];
+                estimatedTimeToEquivalency: number;
+                licensingExamsRequired: string[];
+            };
+            equivalency?: {
+                localEquivalent: string;
+                coveragePercentage: number;
+                recognizingBodies: string[];
+            };
         }>;
         recommendations: Array<{
-            type: 'skill' | 'certification' | 'experience';
+            type: 'skill' | 'certification' | 'experience' | 'education_upgrade';
             description: string;
             priority: 'high' | 'medium' | 'low';
+            category?: 'immediate' | 'short_term' | 'long_term';
+            actionable?: boolean;
+            timeframe?: '1-3 months' | '3-6 months' | '6-12 months' | '1+ years';
         }>;
     };
     technicalResults?: {
         technicalSkills: Array<{
             name: string;
-            category: string;
+            category: 'programming' | 'database' | 'cloud' | 'tool' | 'methodology' | 'monitoring' | 'framework';
             level: string;
             yearsOfExperience: number;
             lastUsed: number;

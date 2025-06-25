@@ -93,7 +93,9 @@ export async function PUT(
         // Update analysis with results
         await db.collection('analysis').doc(params.id).update({
             status: 'completed',
-            results,
+            profileResults: results.profileResults,
+            technicalResults: results.technicalResults,
+            ahaResults: results.ahaResults,
             completedAt: new Date()
         });
 
@@ -102,7 +104,9 @@ export async function PUT(
             data: {
                 ...analysis,
                 status: 'completed',
-                results,
+                profileResults: results.profileResults,
+                technicalResults: results.technicalResults,
+                ahaResults: results.ahaResults,
                 completedAt: new Date()
             }
         });

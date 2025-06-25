@@ -2,12 +2,12 @@ import { model } from '../../lib/vertexai';
 import { AnalysisRequest } from '../../types/analysis';
 
 export abstract class BaseAnalyzer<T> {
-    protected abstract buildPrompt(resumeText: string): string;
+    protected abstract buildPrompt(request: AnalysisRequest): string;
     protected abstract parseResponse(text: string): T;
 
     async analyze(request: AnalysisRequest): Promise<T> {
         try {
-            const prompt = this.buildPrompt(request.resumeText);
+            const prompt = this.buildPrompt(request);
             const result = await model.generateContent(prompt);
             const response = await result.response;
 
