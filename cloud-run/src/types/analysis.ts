@@ -168,4 +168,30 @@ export interface CompatibilityScoresAnalysis extends BaseAnalysisResult {
         strengths: string[];
         challenges: string[];
     };
+}
+
+export interface AhaAnalysis {
+    hiddenSkills: Array<{
+        originalSkill: {
+            name: string;
+            context: string;
+            location: string;
+        };
+        equivalentSkill: {
+            name: string;
+            market: string;
+            confidence: number;
+            description: string;
+        };
+        potentialRoles: string[];
+        marketValue: {
+            salary: {
+                min: number;
+                max: number;
+                currency: string;
+            };
+            demandLevel: 'high' | 'medium' | 'low';
+        };
+    }>;
+    insightSummary: string;
 } 

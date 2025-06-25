@@ -25,6 +25,7 @@ import { analysisService } from '@/lib/services/analysisService';
 import SkillsComparison from './SkillsComparison';
 import { useAuth } from '@/lib/auth/AuthContext';
 import toast from 'react-hot-toast';
+import AhaMoments from './AhaMoments';
 
 interface AnalysisResultsProps {
     analysisId: string;
@@ -188,6 +189,18 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                         </motion.p>
                     </div>
 
+                    {/* Aha Moments Section */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 mb-12"
+                    >
+                        <AhaMoments analysis={analysis} />
+                    </motion.div>
+
+
+
                     {/* Skills Section */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -222,6 +235,7 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                             ))}
                         </div>
                     </motion.div>
+
 
                     {/* Experience Section */}
                     <motion.div

@@ -44,12 +44,12 @@ const Navigation = () => {
                         <Link href="/jobs" className="text-gray-600 hover:text-red-600">
                             Browse Jobs
                         </Link>
-                        <Link href="/analysis" className="text-gray-600 hover:text-red-600">
-                            Analysis
-                        </Link>
 
                         {user ? (
                             <>
+                                <Link href="/analysis" className="text-gray-600 hover:text-red-600">
+                                    Analysis
+                                </Link>
                                 <Link
                                     href="/upload"
                                     className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium"

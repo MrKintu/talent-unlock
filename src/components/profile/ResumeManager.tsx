@@ -167,7 +167,7 @@ export default function ResumeManager() {
                                 </p>
                             </div>
                             <div className="flex items-center space-x-2">
-                                {analyses[resume.id] ? (
+                                {/* {analyses[resume.id] ? (
                                     <span className={`px-2 py-1 rounded-full text-xs ${analyses[resume.id].status === 'completed' ? 'bg-green-100 text-green-800' :
                                         analyses[resume.id].status === 'failed' ? 'bg-red-100 text-red-800' :
                                             'bg-yellow-100 text-yellow-800'
@@ -189,7 +189,30 @@ export default function ResumeManager() {
                                             'Analyze'
                                         )}
                                     </button>
-                                )}
+                                )} */}
+                                {analyses[resume.id] &&
+                                    <span className={`px-2 py-1 rounded-full text-xs ${analyses[resume.id].status === 'completed' ? 'bg-green-100 text-green-800' :
+                                        analyses[resume.id].status === 'failed' ? 'bg-red-100 text-red-800' :
+                                            'bg-yellow-100 text-yellow-800'
+                                        }`}>
+                                        {analyses[resume.id].status}
+                                    </span>
+                                }
+
+                                <button
+                                    onClick={() => handleAnalyze(resume.id)}
+                                    disabled={isAnalyzing === resume.id}
+                                    className="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded-full hover:bg-red-700 disabled:opacity-50"
+                                >
+                                    {isAnalyzing === resume.id ? (
+                                        <div className="flex items-center space-x-1">
+                                            <LoadingSpinner size="small" />
+                                            <span>Analyzing...</span>
+                                        </div>
+                                    ) : (
+                                        'Analyze'
+                                    )}
+                                </button>
                                 {analyses[resume.id]?.status === 'completed' && (
                                     <a
                                         href={`/analysis/${analyses[resume.id].id}`}

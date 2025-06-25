@@ -36,7 +36,7 @@ export default function ProfilePage() {
             try {
                 const token = await user.getIdToken();
                 const response = await profileService.getProfile(token);
-                if (response.success) {
+                if (response.success && response.data) {
                     setProfile(response.data);
                 } else {
                     setError(response.message || response.error || 'Failed to fetch profile');
@@ -65,7 +65,7 @@ export default function ProfilePage() {
                 userId: user.uid
             });
 
-            if (response.success) {
+            if (response.success && response.data) {
                 setProfile(response.data);
                 setIsEditing(false);
                 setError(null);

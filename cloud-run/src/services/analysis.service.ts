@@ -1,6 +1,7 @@
 import { db } from '../lib/firebase-admin';
 import { ProfileAnalyzer } from '../analyze/helpers/profile-analyzer';
 import { TechnicalSkillsAnalyzer } from '../analyze/helpers/technical-skills-analyzer';
+import { AhaMomentsAnalyzer } from '../analyze/helpers/aha-moments-analyzer';
 
 interface CreateAnalysisRequest {
     userId: string;
@@ -21,6 +22,7 @@ export interface AnalysisResponse {
 export class AnalysisService {
     private static profileAnalyzer = new ProfileAnalyzer();
     private static technicalSkillsAnalyzer = new TechnicalSkillsAnalyzer();
+    private static ahaAnalyzer = new AhaMomentsAnalyzer();
 
     static async create(request: CreateAnalysisRequest) {
         const { userId, resumeId } = request;
@@ -46,23 +48,25 @@ export class AnalysisService {
             updatedAt: new Date()
         });
 
-        console.log('debug: analysisRef', analysisRef.id);
-
         // Run analyses sequentially with delay to avoid rate limiting
         try {
             // Run profile analysis first
             const profileResults = await this.profileAnalyzer.analyze({ userId, resumeId, resumeText });
 
             // Wait 2 seconds before running technical skills analysis
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 5000));
 
             const technicalResults = await this.technicalSkillsAnalyzer.analyze({ userId, resumeId, resumeText });
-            console.log('debug: technicalResults', technicalResults);
+
+            await new Promise(resolve => setTimeout(resolve, 5000));
+
+            const ahaResults = await this.ahaAnalyzer.analyze({ userId, resumeId, resumeText });
             // Update analysis record with results
             await analysisRef.update({
                 status: 'completed',
                 profileResults,
                 technicalResults,
+                ahaResults,
                 completedAt: new Date(),
                 updatedAt: new Date()
             });
@@ -71,7 +75,8 @@ export class AnalysisService {
                 id: analysisRef.id,
                 status: 'completed',
                 profileResults,
-                technicalResults
+                technicalResults,
+                ahaResults
             };
         } catch (error) {
             console.error('Error in analysis:', error);
