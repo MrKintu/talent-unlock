@@ -43,83 +43,88 @@ export class RoadmapAnalyzer {
 
     private buildPrompt(request: RoadmapRequest): string {
         const { userInput, userProfile } = request;
-        const { countryOfOrigin, targetRole, yearsOfExperience } = userProfile;
-        const { preferredLanguage, timeline, budget, currentSkills } = userInput;
+        const { countryOfOrigin, yearsOfExperience } = userProfile;
+        const { preferredLanguage, targetRole, timeline, budget, currentSkills } = userInput;
 
         return `You are a career development AI specialist with expertise in Canadian immigration, credential recognition, and professional development. Your task is to create a personalized action plan for someone from ${countryOfOrigin} seeking to work as a ${targetRole} in Canada.
 
-User Profile:
-- Country of Origin: ${countryOfOrigin}
-- Target Role: ${targetRole}
-- Years of Experience: ${yearsOfExperience}
-- Preferred Language: ${preferredLanguage}
-- Timeline Goal: ${timeline}
-- Budget Range: ${budget}
-- Current Skills: ${currentSkills}
+        User Profile:
+        - Country of Origin: ${countryOfOrigin}
+        - Target Role: ${targetRole}
+        - Years of Experience: ${yearsOfExperience}
+        - Preferred Language: ${preferredLanguage}
+        - Timeline Goal: ${timeline}
+        - Budget Range: ${budget}
+        - Current Skills: ${currentSkills}
 
-Generate a comprehensive, actionable roadmap that includes:
+        ${preferredLanguage?.toLowerCase() !== 'english' ? `IMPORTANT: Respond entirely in ${preferredLanguage}. All titles, descriptions, and text content must be in ${preferredLanguage}.` : ''}
 
-1. BRIDGE COURSES & ONLINE PROGRAMS
-   - Canadian-specific courses to meet credential requirements
-   - Online programs from recognized Canadian institutions
-   - Government-funded newcomer programs
-   - Language improvement courses if needed
+        Generate a comprehensive, actionable roadmap that includes:
 
-2. CERTIFICATION EXAMS
-   - Professional certifications required for the role
-   - Canadian-specific licensing requirements
-   - Exam preparation resources and timelines
+        1. BRIDGE COURSES & ONLINE PROGRAMS
+        - Canadian-specific courses to meet credential requirements
+        - Online programs from recognized Canadian institutions
+        - Government-funded newcomer programs
+        - Language improvement courses if needed
 
-3. MENTORSHIP PROGRAMS
-   - Industry-specific mentorship opportunities
-   - Newcomer support programs
-   - Professional networking groups
+        2. CERTIFICATION EXAMS
+        - Professional certifications required for the role
+        - Canadian-specific licensing requirements
+        - Exam preparation resources and timelines
 
-4. INTERNSHIPS & EXPERIENCE
-   - Local internship opportunities
-   - Volunteer positions to gain Canadian experience
-   - Entry-level positions to build local credibility
+        3. MENTORSHIP PROGRAMS
+        - Industry-specific mentorship opportunities
+        - Newcomer support programs
+        - Professional networking groups
 
-5. GOVERNMENT PROGRAMS & SCHOLARSHIPS
-   - Newcomer credentialing support
-   - Government-funded training programs
-   - Scholarships for international professionals
+        4. INTERNSHIPS & EXPERIENCE
+        - Local internship opportunities
+        - Volunteer positions to gain Canadian experience
+        - Entry-level positions to build local credibility
 
-Return a JSON object with exactly this structure:
-{
-  "roadmap": [
-    {
-      "id": "unique-id",
-      "type": "course/certification/mentorship/internship/exam",
-      "title": "specific program or opportunity name",
-      "description": "detailed description of what this involves",
-      "duration": "time to complete (e.g., 3 months, 6 weeks)",
-      "cost": "estimated cost in CAD",
-      "priority": "high/medium/low",
-      "link": "direct link to program or resource",
-      "requirements": ["specific requirements or prerequisites"],
-      "benefits": ["specific benefits this will provide"],
-      "timeline": "when to start this (e.g., immediately, after 3 months)"
-    }
-  ],
-  "summary": "comprehensive overview of the action plan",
-  "estimatedTimeline": "total estimated time to complete the roadmap",
-  "totalCost": "total estimated cost in CAD",
-  "language": "${preferredLanguage}"
-}
+        5. GOVERNMENT PROGRAMS & SCHOLARSHIPS
+        - Newcomer credentialing support
+        - Government-funded training programs
+        - Scholarships for international professionals
 
-IMPORTANT GUIDELINES:
-1. Focus on Canadian-specific opportunities and requirements
-2. Include real, verifiable programs and resources with actual links
-3. Consider the user's budget constraints and timeline
-4. Prioritize items that will have the most impact on credential recognition
-5. Include both free and paid options
-6. Consider language requirements and provide language-specific resources
-7. Include government programs and newcomer support services
-8. Provide realistic timelines and costs
-9. Ensure all recommendations are actionable and specific
+        Return a JSON object with exactly this structure:
+        {
+        "roadmap": [
+            {
+            "id": "unique-id",
+            "type": "course/certification/mentorship/internship/exam",
+            "title": "specific program or opportunity name",
+            "description": "detailed description of what this involves",
+            "duration": "time to complete (e.g., 3 months, 6 weeks)",
+            "cost": "estimated cost in CAD",
+            "priority": "high/medium/low",
+            "link": "direct link to program or resource",
+            "requirements": ["specific requirements or prerequisites"],
+            "benefits": ["specific benefits this will provide"],
+            "timeline": "when to start this (e.g., immediately, after 3 months)"
+            }
+        ],
+        "summary": "comprehensive overview of the action plan",
+        "estimatedTimeline": "total estimated time to complete the roadmap",
+        "totalCost": "total estimated cost in CAD",
+        "language": "${preferredLanguage}"
+        }
 
-CRITICAL: Return ONLY the JSON object. Do not include any markdown formatting, explanations, or additional text.`;
+        IMPORTANT GUIDELINES:
+        1. Focus on Canadian-specific opportunities and requirements
+        2. Include real, verifiable programs and resources with actual links, make sure the link is valid, english language, from glassdoor, indeed, linkedin, ircc, cic, government of canada, etc.
+        3. Consider the user's budget constraints and timeline
+        4. Prioritize items that will have the most impact on credential recognition
+        5. Include both free and paid options
+        6. Consider language requirements and provide language-specific resources
+        7. Include government programs and newcomer support services
+        8. Provide realistic timelines and costs
+        9. Ensure all recommendations are actionable and specific
+        ${preferredLanguage !== 'English' ? `10. ALL content must be written in ${preferredLanguage}` : ''}
+
+        CRITICAL: 
+        Keep ALL URLs and links in their original English format. Do NOT translate website URLs, email addresses, or web links. Only translate the descriptive text, titles, and descriptions.
+        Return ONLY the JSON object. Do not include any markdown formatting, explanations, or additional text.${preferredLanguage !== 'English' ? ` Remember: ALL text content must be in ${preferredLanguage}.` : ''}`;
     }
 
     private parseResponse(text: string): RoadmapResponse['data'] {

@@ -41,8 +41,12 @@ export async function POST(request: NextRequest) {
         }
 
         // Call the cloud-run service
-        const cloudRunUrl = process.env.CLOUD_RUN_URL || 'http://localhost:8080';
-        const response = await fetch(`${cloudRunUrl}/roadmap/generate`, {
+        // Forward the request to Cloud Run
+        const cloudRunUrl = process.env.RESUME_ANALYSIS_SERVICE_URL;
+        if (!cloudRunUrl) {
+            throw new Error('Resume analysis service URL not configured');
+        }
+        const response = await fetch(`${cloudRunUrl}/analyze/roadmap/generate`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -78,6 +78,62 @@ export default function RoadmapPage() {
         budget: 'moderate'
     });
 
+    const fetchUserProfile = async () => {
+        if (!user) return;
+        try {
+            const token = await user.getIdToken();
+            const response = await profileService.getProfile(token);
+            if (response.success && response.data) {
+                setUserProfile(response.data);
+                setUserInput({
+                    targetRole: response.data.targetRole,
+                    currentSkills: response.data.skills.join(', '),
+                    preferredLanguage: 'English',
+                    timeline: '6-12 months',
+                    budget: 'moderate'
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    };
+
+    const fetchResumes = async () => {
+        if (!user) return;
+        try {
+            const token = await user.getIdToken();
+            const result = await resumeService.listResumes(token);
+            if (result.success && result.data) {
+                setResumes(result.data);
+                fetchAnalysesForResumes(token, result.data);
+            }
+        } catch (error) {
+            console.error('Error fetching resume with analysis:', error);
+        }
+    };
+
+    const fetchAnalysesForResumes = async (token: string, resumes: any[]) => {
+        try {
+            const response = await analysisService.getAnalysisList(token);
+            if (response.success) {
+                const analysisMap = response.data.reduce((acc: Record<string, Analysis>, analysis: Analysis) => {
+                    acc[analysis.resumeId] = analysis;
+                    return acc;
+                }, {});
+                setAnalyses(analysisMap);
+            }
+        } catch (error) {
+            console.error('Error fetching analyses:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (user) {
+            fetchUserProfile();
+            fetchResumes();
+        }
+    }, [user]);
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50 flex items-center justify-center">
@@ -133,55 +189,6 @@ export default function RoadmapPage() {
         }
     };
 
-    const fetchUserProfile = async () => {
-        if (!user) return;
-        try {
-            const token = await user.getIdToken();
-            const response = await profileService.getProfile(token);
-            if (response.success && response.data) {
-                setUserProfile(response.data);
-                setUserInput({
-                    targetRole: response.data.targetRole,
-                    currentSkills: response.data.skills.join(', '),
-                    preferredLanguage: 'English',
-                    timeline: '6-12 months',
-                    budget: 'moderate'
-                });
-            }
-        } catch (error) {
-            console.error('Error fetching profile:', error);
-        }
-    };
-
-    const fetchResumes = async () => {
-        if (!user) return;
-        try {
-            const token = await user.getIdToken();
-            const result = await resumeService.listResumes(token);
-            if (result.success && result.data) {
-                setResumes(result.data);
-                fetchAnalysesForResumes(token, result.data);
-            }
-        } catch (error) {
-            console.error('Error fetching resume with analysis:', error);
-        }
-    };
-
-    const fetchAnalysesForResumes = async (token: string, resumes: any[]) => {
-        try {
-            const response = await analysisService.getAnalysisList(token);
-            if (response.success) {
-                const analysisMap = response.data.reduce((acc: Record<string, Analysis>, analysis: Analysis) => {
-                    acc[analysis.resumeId] = analysis;
-                    return acc;
-                }, {});
-                setAnalyses(analysisMap);
-            }
-        } catch (error) {
-            console.error('Error fetching analyses:', error);
-        }
-    };
-
     const handleAnalysisSelect = (analysisId: string) => {
         setSelectedAnalysisId(analysisId);
         const selectedAnalysis = analyses[analysisId];
@@ -196,7 +203,6 @@ export default function RoadmapPage() {
             const certifications = selectedAnalysis.technicalResults?.certifications.map(cert => cert.name).join(', ') || '';
             const education = selectedAnalysis.profileResults?.education.map(edu => edu.degree).join(', ') || '';
             const experience = selectedAnalysis.profileResults?.experience.map(exp => exp.role).join(', ') || '';
-            const skills = selectedAnalysis.profileResults?.skills.map(skill => skill.name).join(', ') || '';
             const hiddenSkills = selectedAnalysis.ahaResults?.hiddenSkills.map(skill => skill.originalSkill.name).join(', ') || '';
 
             setUserInput(prev => ({
@@ -215,13 +221,6 @@ export default function RoadmapPage() {
             toast.success('Skills loaded from analysis!');
         }
     };
-
-    useEffect(() => {
-        if (user) {
-            fetchUserProfile();
-            fetchResumes();
-        }
-    }, [user]);
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
