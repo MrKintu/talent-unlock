@@ -1,133 +1,96 @@
-import express from 'express';
-import { ProfileAnalyzer } from './helpers/profile-analyzer';
-import { TechnicalSkillsAnalyzer } from './helpers/technical-skills-analyzer';
-import { AnalysisRequest } from '../types/analysis';
-import { auth, db } from './../lib/firebase-admin';
-import { DocumentData } from 'firebase-admin/firestore';
+import { Router, Request, Response, NextFunction, RequestHandler } from 'express';
+import { auth } from './../lib/firebase-admin';
+import { AnalysisService } from '../services/analysis.service';
+import { ApiError } from '../utils/api-error';
 
-const router = express.Router();
-const profileAnalyzer = new ProfileAnalyzer();
-const technicalSkillsAnalyzer = new TechnicalSkillsAnalyzer();
+interface AuthRequest extends Request {
+    userId: string;
+}
 
-// Middleware to validate request body
-const validateRequest = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const { resumeId } = { ...req.body, ...req.query };
+const router = Router();
 
-    if (!resumeId) {
-        return res.status(400).json({
-            success: false,
-            error: 'Missing required fields: resumeId, userId, resumeText'
-        });
+// Middleware to verify authentication
+const verifyAuth: RequestHandler = async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader?.startsWith('Bearer ')) {
+            throw new ApiError('Unauthorized', 401);
+        }
+
+        const token = authHeader.split('Bearer ')[1];
+        const decodedToken = await auth.verifyIdToken(token);
+        (req as AuthRequest).userId = decodedToken.uid;
+        next();
+    } catch (error) {
+        if (error instanceof ApiError) {
+            res.status(error.statusCode).json({ success: false, message: error.message });
+        } else {
+            res.status(401).json({ success: false, message: 'Authentication failed' });
+        }
     }
-
-    next();
 };
 
-
-// Get analyses endpoint
-router.get('/', async (req, res) => {
+// Get all analyses for user
+const getAnalyses: RequestHandler = async (req, res) => {
     try {
-        // Verify authentication
-        const authHeader = req.headers.authorization;
-        if (!authHeader?.startsWith('Bearer ')) {
-            return res.status(401).json({ success: false, message: 'Unauthorized' });
-        }
-
-        const token = authHeader.split('Bearer ')[1];
-        const decodedToken = await auth.verifyIdToken(token);
-        const userId = decodedToken.uid;
-
-        // Get all analyses for the user
-        const analysesSnapshot = await db.collection('analysis')
-            .where('userId', '==', userId)
-            .orderBy('createdAt', 'desc')
-            .get();
-
-        const analyses = analysesSnapshot.docs.map((doc: DocumentData) => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-
-        return res.json({
-            success: true,
-            data: analyses
-        });
-
+        const analyses = await AnalysisService.listByUser((req as AuthRequest).userId);
+        res.json({ success: true, data: analyses });
     } catch (error) {
         console.error('Error fetching analyses:', error);
-        return res.status(500).json({ success: false, message: 'Internal server error' });
+        res.status(500).json({ success: false, message: 'Failed to fetch analyses' });
     }
-});
+};
 
-// Resume analysis endpoint
-router.post('/', async (req, res) => {
+// Create new analysis
+const createAnalysis: RequestHandler = async (req, res) => {
     try {
-        console.log('debug: req.body', req.body);
-        // Verify authentication
-        const authHeader = req.headers.authorization;
-        if (!authHeader?.startsWith('Bearer ')) {
-            return res.status(401).json({ success: false, message: 'Unauthorized' });
-        }
-
-        const token = authHeader.split('Bearer ')[1];
-        const decodedToken = await auth.verifyIdToken(token);
-        const userId = decodedToken.uid;
-
-        // Get request body
         const { resumeId } = req.body;
         if (!resumeId) {
-            return res.status(400).json({ success: false, message: 'Resume ID is required' });
+            throw new ApiError('Resume ID is required', 400);
         }
 
-        // Create analysis record
-        const analysisRef = await db.collection('analysis').add({
-            userId,
-            resumeId,
-            status: 'processing',
-            createdAt: new Date(),
+        const analysis = await AnalysisService.create({
+            userId: (req as AuthRequest).userId,
+            resumeId
         });
 
-        // Return immediately with the analysis ID
-        res.json({
-            success: true,
-            data: {
-                id: analysisRef.id,
-                status: 'processing'
-            }
-        });
-        console.log('debug: res', analysisRef?.id);
+        res.json({ success: true, data: analysis });
     } catch (error) {
-        console.error('Error initiating analysis:', error);
-        return res.status(500).json({ success: false, message: 'Internal server error' });
+        console.error('Error creating analysis:', error);
+        if (error instanceof ApiError) {
+            res.status(error.statusCode).json({ success: false, message: error.message });
+        } else {
+            res.status(500).json({ success: false, message: 'Failed to create analysis' });
+        }
     }
-});
+};
 
-// Profile analysis endpoint
-router.post('/profile', validateRequest, async (req: express.Request, res: express.Response) => {
-    const request: AnalysisRequest = {
-        resumeId: req.body.resumeId,
-        userId: req.body.userId,
-        resumeText: req.body.resumeText
-    };
+// Get analysis by ID
+const getAnalysisById: RequestHandler = async (req, res) => {
+    try {
+        const analysis = await AnalysisService.getById(req.params.id);
+        if (!analysis) {
+            throw new ApiError('Analysis not found', 404);
+        }
 
-    const result = await profileAnalyzer.analyze(request);
-    res.json(result);
-});
+        const isOwner = await AnalysisService.verifyOwnership(req.params.id, (req as AuthRequest).userId);
+        if (!isOwner) {
+            throw new ApiError('Forbidden', 403);
+        }
 
-// Technical skills analysis endpoint
-router.post('/technical-skills', validateRequest, async (req: express.Request, res: express.Response) => {
-    const request: AnalysisRequest = {
-        resumeId: req.body.resumeId,
-        userId: req.body.userId,
-        resumeText: req.body.resumeText
-    };
+        res.json({ success: true, data: analysis });
+    } catch (error) {
+        console.error('Error fetching analysis:', error);
+        if (error instanceof ApiError) {
+            res.status(error.statusCode).json({ success: false, message: error.message });
+        } else {
+            res.status(500).json({ success: false, message: 'Failed to fetch analysis' });
+        }
+    }
+};
 
-    const result = await technicalSkillsAnalyzer.analyze(request);
-    res.json(result);
-});
-
-// TODO: Add other analysis endpoints following the same pattern:
-// router.post('/soft-skills', validateRequest, async (req, res) => { ... });
-// etc.
+router.get('/', verifyAuth, getAnalyses);
+router.post('/', verifyAuth, createAnalysis);
+router.get('/:id', verifyAuth, getAnalysisById);
 
 export default router; 

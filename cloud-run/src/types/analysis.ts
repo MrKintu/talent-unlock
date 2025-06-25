@@ -1,6 +1,6 @@
 export interface AnalysisRequest {
-    resumeId: string;
     userId: string;
+    resumeId: string;
     resumeText: string;
 }
 
@@ -15,21 +15,74 @@ export interface BaseAnalysisResult {
     timestamp: Date;
 }
 
-export interface ProfileAnalysis extends BaseAnalysisResult {
-    careerStage: 'entry' | 'mid' | 'senior' | 'executive';
-    experienceLevel: string;
-    leadershipExperience: {
-        level: string;
-        details: string[];
-    };
+interface Skill {
+    name: string;
+    level: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+    confidence: number;
 }
 
-export interface TechnicalSkillsAnalysis extends BaseAnalysisResult {
-    skills: {
-        name: string;
-        level: 'beginner' | 'intermediate' | 'advanced' | 'expert';
-        confidence: number;
-    }[];
+interface Experience {
+    role: string;
+    company: string;
+    duration: number;
+    highlights: string[];
+}
+
+interface Education {
+    degree: string;
+    institution: string;
+    year: number | null;
+}
+
+interface Recommendation {
+    type: 'skill' | 'certification' | 'experience';
+    description: string;
+    priority: 'high' | 'medium' | 'low';
+}
+
+export interface ProfileAnalysis {
+    skills: Skill[];
+    experience: Experience[];
+    education: Education[];
+    recommendations: Recommendation[];
+}
+
+interface TechnicalSkill {
+    name: string;
+    category: string;
+    level: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+    yearsOfExperience: number;
+    lastUsed: number;
+    context: string[];
+}
+
+interface TechnicalProject {
+    name: string;
+    description: string;
+    technologies: string[];
+    role: string;
+    impact: string[];
+}
+
+interface Certification {
+    name: string;
+    issuer: string;
+    year: number;
+    relevance: 'high' | 'medium' | 'low';
+}
+
+interface SkillGap {
+    skillGap: string;
+    suggestion: string;
+    priority: 'high' | 'medium' | 'low';
+    rationale: string;
+}
+
+export interface TechnicalSkillsAnalysis {
+    technicalSkills: TechnicalSkill[];
+    technicalProjects: TechnicalProject[];
+    certifications: Certification[];
+    recommendations: SkillGap[];
 }
 
 export interface SoftSkillsAnalysis extends BaseAnalysisResult {

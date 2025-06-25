@@ -1,62 +1,74 @@
 import { BaseAnalyzer } from './base-analyzer';
-import { TechnicalSkillsAnalysis, BaseAnalysisResult } from '../../types/analysis';
+import { AnalysisRequest, TechnicalSkillsAnalysis } from '../../types/analysis';
 
 export class TechnicalSkillsAnalyzer extends BaseAnalyzer<TechnicalSkillsAnalysis> {
-    protected component = 'technical-skills';
-    protected prompt = `
-    Analyze the resume and extract technical skills information:
-    - Programming languages
-    - Frameworks and libraries
-    - Tools and technologies
-    - Development methodologies
-    - Infrastructure and cloud platforms
+    protected buildPrompt(resumeText: string): string {
+        return `You are a technical skills analysis AI. Your task is to analyze the resume text and return ONLY a JSON object with no additional text, markdown formatting, or explanation.
 
-    For each skill identified:
-    - Determine the proficiency level (beginner, intermediate, advanced, expert)
-    - Calculate a confidence score (0-1) based on evidence in the resume
-    - Consider factors like years of experience, project complexity, and recency
+Resume Text:
+${resumeText}
 
-    Format the response as JSON with the following structure:
+Return a JSON object with exactly this structure:
+{
+  "technicalSkills": [
     {
-      "skills": [
-        {
-          "name": "skill name",
-          "level": "beginner|intermediate|advanced|expert",
-          "confidence": 0.95
-        }
-      ]
+      "name": "skill name",
+      "category": "programming/framework/tool/database/cloud/etc",
+      "level": "beginner/intermediate/advanced/expert",
+      "yearsOfExperience": 2,
+      "lastUsed": 2024,
+      "context": ["brief examples of how this skill was used"]
     }
-  `;
+  ],
+  "technicalProjects": [
+    {
+      "name": "project name",
+      "description": "brief description",
+      "technologies": ["tech1", "tech2"],
+      "role": "role in project",
+      "impact": ["measurable outcomes"]
+    }
+  ],
+  "certifications": [
+    {
+      "name": "certification name",
+      "issuer": "issuing organization",
+      "year": 2024,
+      "relevance": "high/medium/low"
+    }
+  ],
+  "recommendations": [
+    {
+      "skillGap": "identified skill gap",
+      "suggestion": "specific suggestion to address the gap",
+      "priority": "high/medium/low",
+      "rationale": "why this is important"
+    }
+  ]
+}
 
-    protected parseResponse(text: string): Omit<TechnicalSkillsAnalysis, keyof BaseAnalysisResult> {
-        try {
-            const parsed = JSON.parse(text) as Partial<TechnicalSkillsAnalysis>;
+IMPORTANT: Return ONLY the JSON object. Do not include any markdown formatting, explanations, or additional text.`;
+    }
 
-            if (!Array.isArray(parsed.skills)) {
-                throw new Error('Skills must be an array');
-            }
+    protected parseResponse(text: string): TechnicalSkillsAnalysis {
+        // Remove any markdown formatting if present
+        const cleanText = text.replace(/```json\s*|\s*```/g, '').trim();
+        const parsed = JSON.parse(cleanText);
 
-            // Validate each skill entry
-            parsed.skills.forEach((skill, index) => {
-                if (!skill.name || typeof skill.name !== 'string') {
-                    throw new Error(`Invalid skill name at index ${index}`);
-                }
-
-                if (!['beginner', 'intermediate', 'advanced', 'expert'].includes(skill.level)) {
-                    throw new Error(`Invalid skill level at index ${index}`);
-                }
-
-                if (typeof skill.confidence !== 'number' || skill.confidence < 0 || skill.confidence > 1) {
-                    throw new Error(`Invalid confidence score at index ${index}`);
-                }
-            });
-
-            return {
-                skills: parsed.skills
-            };
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to parse technical skills analysis';
-            throw new Error(`Invalid technical skills analysis format: ${errorMessage}`);
+        // Validate the required fields
+        if (!parsed.technicalSkills || !Array.isArray(parsed.technicalSkills)) {
+            throw new Error('Missing or invalid technical skills array');
         }
+        if (!parsed.technicalProjects || !Array.isArray(parsed.technicalProjects)) {
+            throw new Error('Missing or invalid technical projects array');
+        }
+        if (!parsed.certifications || !Array.isArray(parsed.certifications)) {
+            throw new Error('Missing or invalid certifications array');
+        }
+        if (!parsed.recommendations || !Array.isArray(parsed.recommendations)) {
+            throw new Error('Missing or invalid recommendations array');
+        }
+
+        return parsed;
     }
 } 
