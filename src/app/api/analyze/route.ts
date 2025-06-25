@@ -1,10 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { model } from '@/lib/vertexai';
-import { ApiResponse, AnalysisResult, Skill } from '@/lib/types';
-import { ANALYSIS } from '@/lib/constants';
-import { auth } from '@/lib/firebase-admin';
-import { db } from '@/lib/firebase-admin';
-import { vertexai } from '@/lib/vertexai';
+import { auth, db } from '@/lib/firebase-admin';
 
 export async function POST(request: Request) {
   try {
@@ -31,23 +27,113 @@ export async function POST(request: Request) {
     }
 
     const resumeData = resumeDoc.data();
+    const resumeText = resumeData?.text || '';
+    console.log(`debug: resumeText`, { resumeText, resumeId, userId, resumeDoc });
 
     // Create analysis record
     const analysisRef = await db.collection('analysis').add({
       userId,
       resumeId,
-      fileUrl: resumeData?.fileUrl,
-      status: 'pending',
+      status: 'processing',
       createdAt: new Date(),
     });
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        id: analysisRef.id,
-        status: 'pending'
+    // Start the analysis process
+    try {
+      // Prepare the prompt for Vertex AI
+      const prompt = `You are a resume analysis AI. Your task is to analyze the resume text and return ONLY a JSON object with no additional text or explanation.
+
+Resume Text:
+${resumeText}
+
+Return a JSON object with exactly this structure:
+{
+  "skills": [
+    {
+      "name": "skill name",
+      "level": "beginner/intermediate/advanced/expert",
+      "confidence": 0.95
+    }
+  ],
+  "experience": [
+    {
+      "role": "job title",
+      "company": "company name",
+      "duration": 24,
+      "highlights": ["achievement 1", "achievement 2"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "degree name",
+      "institution": "institution name",
+      "year": 2020
+    }
+  ],
+  "recommendations": [
+    {
+      "type": "skill/certification/experience",
+      "description": "detailed recommendation",
+      "priority": "high/medium/low"
+    }
+  ]
+}`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+
+      if (!response.candidates?.[0]?.content?.parts?.[0]?.text) {
+        throw new Error('Invalid response from AI model');
       }
-    });
+
+      let analysisResults;
+      try {
+        console.log(`debug: response analysis`, JSON.stringify(response.candidates[0].content, null, 2));
+        const responseText = response.candidates[0].content.parts[0].text.trim();
+        analysisResults = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', response.candidates[0].content.parts[0].text);
+        throw new Error('Failed to parse AI response');
+      }
+
+      // Validate the response structure
+      if (!analysisResults.skills || !Array.isArray(analysisResults.skills) ||
+        !analysisResults.experience || !Array.isArray(analysisResults.experience) ||
+        !analysisResults.education || !Array.isArray(analysisResults.education) ||
+        !analysisResults.recommendations || !Array.isArray(analysisResults.recommendations)) {
+        throw new Error('Invalid analysis results structure');
+      }
+
+      // Update the analysis with results
+      await analysisRef.update({
+        status: 'completed',
+        results: analysisResults,
+        completedAt: new Date()
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          id: analysisRef.id,
+          status: 'completed',
+          results: analysisResults
+        }
+      });
+
+    } catch (analysisError) {
+      console.error('Error in AI analysis:', analysisError);
+
+      // Update analysis status to failed
+      await analysisRef.update({
+        status: 'failed',
+        error: 'Failed to analyze resume'
+      });
+
+      return NextResponse.json({
+        success: false,
+        message: 'Failed to analyze resume'
+      }, { status: 500 });
+    }
 
   } catch (error) {
     console.error('Error in analysis:', error);

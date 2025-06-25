@@ -56,9 +56,14 @@ export interface ResumeUpload {
     fileType: string;
     downloadUrl: string;
     uploadDate: Date;
-    status: 'completed' | 'error';
+    status: 'processing' | 'completed' | 'error';
+    processingStatus?: 'processing' | 'completed' | 'error';
     progress: number;
     isActive?: boolean;
+    error?: string;
+    extractedText?: string;
+    textExtractionConfidence?: number;
+    updatedAt?: Date;
 }
 
 export interface Skill {
