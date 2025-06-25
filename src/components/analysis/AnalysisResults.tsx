@@ -10,12 +10,21 @@ import {
     CursorArrowRaysIcon,
     StarIcon,
     MapPinIcon,
-    BriefcaseIcon
+    BriefcaseIcon,
+    ExclamationCircleIcon,
+    AcademicCapIcon,
+    CommandLineIcon,
+    ServerIcon,
+    CloudIcon,
+    WrenchScrewdriverIcon,
+    ClipboardDocumentCheckIcon
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
-import { AnalysisResult, Skill } from '@/lib/types';
+import { Analysis } from '@/lib/types';
+import { analysisService } from '@/lib/services/analysisService';
 import SkillsComparison from './SkillsComparison';
-import { ANALYSIS } from '@/lib/constants';
+import { useAuth } from '@/lib/auth/AuthContext';
+import toast from 'react-hot-toast';
 
 interface AnalysisResultsProps {
     analysisId: string;
@@ -23,90 +32,36 @@ interface AnalysisResultsProps {
 
 const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
     const router = useRouter();
-    const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+    const { user } = useAuth();
+    const [analysis, setAnalysis] = useState<Analysis | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Mock analysis data for demo
-        const mockAnalysis: AnalysisResult = {
-            id: analysisId,
-            resumeId: 'resume_123',
-            originalSkills: [
-                { name: 'Java Development', confidence: 0.95, category: 'TECHNICAL', relevanceScore: 0.9 },
-                { name: 'Spring Framework', confidence: 0.92, category: 'TECHNICAL', relevanceScore: 0.85 },
-                { name: 'MySQL Database', confidence: 0.88, category: 'TECHNICAL', relevanceScore: 0.8 },
-                { name: 'Team Leadership', confidence: 0.85, category: 'SOFT', relevanceScore: 0.9 },
-                { name: 'Hindi (Native)', confidence: 0.95, category: 'LANGUAGE', relevanceScore: 0.7 },
-                { name: 'English (Fluent)', confidence: 0.9, category: 'LANGUAGE', relevanceScore: 0.95 }
-            ],
-            mappedSkills: [
-                {
-                    name: 'Full-Stack Development',
-                    confidence: 0.95,
-                    category: 'TECHNICAL',
-                    internationalName: 'Java Development',
-                    canadianEquivalent: 'Full-Stack Development',
-                    relevanceScore: 0.95
-                },
-                {
-                    name: 'Modern Web Frameworks',
-                    confidence: 0.92,
-                    category: 'TECHNICAL',
-                    internationalName: 'Spring Framework',
-                    canadianEquivalent: 'React/Node.js/Angular',
-                    relevanceScore: 0.9
-                },
-                {
-                    name: 'Cloud Database Management',
-                    confidence: 0.88,
-                    category: 'TECHNICAL',
-                    internationalName: 'MySQL Database',
-                    canadianEquivalent: 'AWS RDS/Azure SQL',
-                    relevanceScore: 0.85
-                },
-                {
-                    name: 'Project Management',
-                    confidence: 0.85,
-                    category: 'SOFT',
-                    internationalName: 'Team Leadership',
-                    canadianEquivalent: 'Agile Project Management',
-                    relevanceScore: 0.9
-                },
-                {
-                    name: 'Multilingual Communication',
-                    confidence: 0.9,
-                    category: 'LANGUAGE',
-                    internationalName: 'Hindi (Native)',
-                    canadianEquivalent: 'English + Hindi',
-                    relevanceScore: 0.8
+        const fetchAnalysis = async () => {
+            if (!user) return;
+
+            try {
+                const token = await user.getIdToken();
+                const response = await analysisService.getAnalysis(token, analysisId);
+
+                if (response.success) {
+                    setAnalysis(response.data);
+                } else {
+                    setError(response.error || 'Failed to fetch analysis');
+                    toast.error('Failed to fetch analysis results');
                 }
-            ],
-            canadianEquivalents: [],
-            missingSkills: [
-                { name: 'React.js', confidence: 0.8, category: 'TECHNICAL', relevanceScore: 0.9 },
-                { name: 'TypeScript', confidence: 0.75, category: 'TECHNICAL', relevanceScore: 0.85 },
-                { name: 'AWS/Azure', confidence: 0.7, category: 'TECHNICAL', relevanceScore: 0.8 },
-                { name: 'Agile/Scrum', confidence: 0.8, category: 'SOFT', relevanceScore: 0.85 }
-            ],
-            recommendations: [
-                'Complete React.js certification from Udemy or Coursera',
-                'Learn TypeScript fundamentals for better code quality',
-                'Get AWS Solutions Architect certification',
-                'Take Agile project management course',
-                'Practice English communication skills in professional settings'
-            ],
-            overallScore: 87,
-            processingTime: 2500,
-            createdAt: new Date(),
-            status: 'completed'
+            } catch (error) {
+                console.error('Error fetching analysis:', error);
+                setError('An error occurred while fetching the analysis');
+                toast.error('Failed to load analysis results');
+            } finally {
+                setLoading(false);
+            }
         };
 
-        // Simulate loading
-        setTimeout(() => {
-            setAnalysis(mockAnalysis);
-            setLoading(false);
-        }, 2000);
-    }, [analysisId]);
+        fetchAnalysis();
+    }, [analysisId, user]);
 
     const handleViewJobs = () => {
         router.push(`/jobs/${analysisId}`);
@@ -124,12 +79,72 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
         );
     }
 
-    if (!analysis) {
+    if (error || !analysis) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50 flex items-center justify-center">
                 <div className="text-center">
+                    <ExclamationCircleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-gray-800 mb-4">Analysis not found</h2>
-                    <p className="text-gray-600">Please try uploading your resume again.</p>
+                    <p className="text-gray-600 mb-8">{error || 'Please try uploading your resume again.'}</p>
+                    <button
+                        onClick={() => router.push('/upload')}
+                        className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                        Upload New Resume
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (analysis.status === 'processing' || analysis.status === 'pending') {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50 flex items-center justify-center">
+                <div className="text-center">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        className="w-16 h-16 border-4 border-yellow-200 border-t-yellow-600 rounded-full mx-auto mb-6"
+                    />
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Analysis in Progress</h2>
+                    <p className="text-gray-600">Please wait while we analyze your resume...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (analysis.status === 'failed') {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50 flex items-center justify-center">
+                <div className="text-center">
+                    <ExclamationCircleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Analysis Failed</h2>
+                    <p className="text-gray-600 mb-8">{analysis.error || 'An error occurred during analysis. Please try again.'}</p>
+                    <button
+                        onClick={() => router.push('/upload')}
+                        className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    const { profileResults } = analysis;
+    if (!profileResults) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50 flex items-center justify-center">
+                <div className="text-center">
+                    <ExclamationCircleIcon className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">No Results Available</h2>
+                    <p className="text-gray-600 mb-8">Analysis completed but no results were generated.</p>
+                    <button
+                        onClick={() => router.push('/upload')}
+                        className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                        Try Again
+                    </button>
                 </div>
             </div>
         );
@@ -169,50 +184,46 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.4 }}
                         >
-                            Your skills have been successfully mapped to Canadian standards
+                            Your profile has been successfully analyzed
                         </motion.p>
-
-                        {/* Overall Score */}
-                        <motion.div
-                            className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20 inline-block"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.6 }}
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-gray-800">{analysis.overallScore}%</div>
-                                    <div className="text-sm text-gray-600">Match Score</div>
-                                </div>
-                                <div className="w-px h-12 bg-gray-300" />
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-gray-800">{analysis.mappedSkills.length}</div>
-                                    <div className="text-sm text-gray-600">Skills Mapped</div>
-                                </div>
-                                <div className="w-px h-12 bg-gray-300" />
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-gray-800">{analysis.processingTime}ms</div>
-                                    <div className="text-sm text-gray-600">Processing Time</div>
-                                </div>
-                            </div>
-                        </motion.div>
                     </div>
 
-                    {/* Skills Comparison */}
+                    {/* Skills Section */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.8 }}
-                        className="mb-12"
+                        transition={{ delay: 0.6 }}
+                        className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 mb-12"
                     >
-                        <SkillsComparison
-                            originalSkills={analysis.originalSkills}
-                            mappedSkills={analysis.mappedSkills}
-                            analysisId={analysisId}
-                        />
+                        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                            <StarIcon className="w-6 h-6 text-yellow-600" />
+                            Skills
+                        </h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {profileResults.skills.map((skill, index) => (
+                                <motion.div
+                                    key={skill.name}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.8 + index * 0.1 }}
+                                    className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                                >
+                                    <div className="flex-1">
+                                        <h3 className="font-semibold text-gray-800">{skill.name}</h3>
+                                        <p className="text-sm text-gray-600">
+                                            Level: {skill.level}
+                                        </p>
+                                    </div>
+                                    <div className="text-sm font-medium text-gray-500">
+                                        {Math.round(skill.confidence * 100)}%
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
                     </motion.div>
 
-                    {/* Missing Skills */}
+                    {/* Experience Section */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -220,35 +231,32 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                         className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 mb-12"
                     >
                         <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                            <CursorArrowRaysIcon className="w-6 h-6 text-red-600" />
-                            Skills to Develop
+                            <BriefcaseIcon className="w-6 h-6 text-blue-600" />
+                            Experience
                         </h2>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {analysis.missingSkills.map((skill, index) => (
+                        <div className="space-y-6">
+                            {profileResults.experience.map((exp, index) => (
                                 <motion.div
-                                    key={skill.name}
+                                    key={`${exp.company}-${exp.role}`}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: 1.2 + index * 0.1 }}
-                                    className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                                    className="p-6 bg-gray-50 rounded-lg"
                                 >
-                                    <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                                    <div className="flex-1">
-                                        <h3 className="font-semibold text-gray-800">{skill.name}</h3>
-                                        <p className="text-sm text-gray-600">
-                                            Relevance: {Math.round(skill.relevanceScore * 100)}%
-                                        </p>
-                                    </div>
-                                    <div className="text-sm text-gray-500">
-                                        {skill.category}
-                                    </div>
+                                    <h3 className="font-semibold text-gray-800 text-lg mb-2">{exp.role}</h3>
+                                    <p className="text-gray-600 mb-3">{exp.company} • {exp.duration} years</p>
+                                    <ul className="list-disc list-inside space-y-2">
+                                        {exp.highlights.map((highlight, i) => (
+                                            <li key={i} className="text-gray-700">{highlight}</li>
+                                        ))}
+                                    </ul>
                                 </motion.div>
                             ))}
                         </div>
                     </motion.div>
 
-                    {/* Recommendations */}
+                    {/* Education Section */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -256,21 +264,302 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                         className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 mb-12"
                     >
                         <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                            <BookOpenIcon className="w-6 h-6 text-blue-600" />
-                            Career Development Recommendations
+                            <AcademicCapIcon className="w-6 h-6 text-purple-600" />
+                            Education
+                        </h2>
+
+                        <div className="space-y-6">
+                            {profileResults.education.map((edu, index) => (
+                                <motion.div
+                                    key={`${edu.institution}-${edu.degree}`}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 1.4 + index * 0.1 }}
+                                    className="p-6 bg-gray-50 rounded-lg"
+                                >
+                                    <h3 className="font-semibold text-gray-800 text-lg mb-2">{edu.degree}</h3>
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-gray-600">{edu.institution}</p>
+                                        <span className="text-gray-500">{edu.year}</span>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+
+                    {/* Technical Skills Analysis */}
+                    {analysis.technicalResults && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.4 }}
+                            className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 mb-12"
+                        >
+                            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                                <CommandLineIcon className="w-6 h-6 text-indigo-600" />
+                                Technical Analysis
+                            </h2>
+
+                            {/* Technical Skills by Category */}
+                            {analysis.technicalResults.technicalSkills && (
+                                <div className="space-y-8">
+                                    {/* Database Skills */}
+                                    <div className="mb-8">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <ServerIcon className="w-5 h-5 text-blue-600" />
+                                            <h3 className="text-lg font-semibold text-gray-700">Database Technologies</h3>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {analysis.technicalResults.technicalSkills
+                                                .filter(skill => skill.category === 'database')
+                                                .map((skill, index) => (
+                                                    <div
+                                                        key={skill.name}
+                                                        className="p-4 bg-gray-50 rounded-lg"
+                                                    >
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <h4 className="font-medium text-gray-800">{skill.name}</h4>
+                                                            <span className={`text-sm px-2 py-1 rounded ${skill.level === 'expert'
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : skill.level === 'advanced'
+                                                                    ? 'bg-blue-100 text-blue-700'
+                                                                    : 'bg-yellow-100 text-yellow-700'
+                                                                }`}>
+                                                                {skill.level}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-600 mb-2">
+                                                            {skill.yearsOfExperience} years • Last used: {skill.lastUsed}
+                                                        </p>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {skill.context.map((ctx, i) => (
+                                                                <span
+                                                                    key={i}
+                                                                    className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded"
+                                                                >
+                                                                    {ctx}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Cloud Skills */}
+                                    <div className="mb-8">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <CloudIcon className="w-5 h-5 text-blue-600" />
+                                            <h3 className="text-lg font-semibold text-gray-700">Cloud & Infrastructure</h3>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {analysis.technicalResults.technicalSkills
+                                                .filter(skill => skill.category === 'cloud')
+                                                .map((skill, index) => (
+                                                    <div
+                                                        key={skill.name}
+                                                        className="p-4 bg-gray-50 rounded-lg"
+                                                    >
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <h4 className="font-medium text-gray-800">{skill.name}</h4>
+                                                            <span className={`text-sm px-2 py-1 rounded ${skill.level === 'expert'
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : skill.level === 'advanced'
+                                                                    ? 'bg-blue-100 text-blue-700'
+                                                                    : 'bg-yellow-100 text-yellow-700'
+                                                                }`}>
+                                                                {skill.level}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-600 mb-2">
+                                                            {skill.yearsOfExperience} years • Last used: {skill.lastUsed}
+                                                        </p>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {skill.context.map((ctx, i) => (
+                                                                <span
+                                                                    key={i}
+                                                                    className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded"
+                                                                >
+                                                                    {ctx}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Programming Skills */}
+                                    <div className="mb-8">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <CommandLineIcon className="w-5 h-5 text-blue-600" />
+                                            <h3 className="text-lg font-semibold text-gray-700">Programming & Development</h3>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {analysis.technicalResults.technicalSkills
+                                                .filter(skill => skill.category === 'programming')
+                                                .map((skill, index) => (
+                                                    <div
+                                                        key={skill.name}
+                                                        className="p-4 bg-gray-50 rounded-lg"
+                                                    >
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <h4 className="font-medium text-gray-800">{skill.name}</h4>
+                                                            <span className={`text-sm px-2 py-1 rounded ${skill.level === 'expert'
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : skill.level === 'advanced'
+                                                                    ? 'bg-blue-100 text-blue-700'
+                                                                    : 'bg-yellow-100 text-yellow-700'
+                                                                }`}>
+                                                                {skill.level}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-600 mb-2">
+                                                            {skill.yearsOfExperience} years • Last used: {skill.lastUsed}
+                                                        </p>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {skill.context.map((ctx, i) => (
+                                                                <span
+                                                                    key={i}
+                                                                    className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded"
+                                                                >
+                                                                    {ctx}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Tools & Methodologies */}
+                                    <div className="mb-8">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <WrenchScrewdriverIcon className="w-5 h-5 text-blue-600" />
+                                            <h3 className="text-lg font-semibold text-gray-700">Tools & Methodologies</h3>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {analysis.technicalResults.technicalSkills
+                                                .filter(skill => ['tool', 'methodology', 'monitoring'].includes(skill.category))
+                                                .map((skill, index) => (
+                                                    <div
+                                                        key={skill.name}
+                                                        className="p-4 bg-gray-50 rounded-lg"
+                                                    >
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <h4 className="font-medium text-gray-800">{skill.name}</h4>
+                                                            <span className={`text-sm px-2 py-1 rounded ${skill.level === 'expert'
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : skill.level === 'advanced'
+                                                                    ? 'bg-blue-100 text-blue-700'
+                                                                    : 'bg-yellow-100 text-yellow-700'
+                                                                }`}>
+                                                                {skill.level}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-600 mb-2">
+                                                            {skill.yearsOfExperience} years • Last used: {skill.lastUsed}
+                                                        </p>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {skill.context.map((ctx, i) => (
+                                                                <span
+                                                                    key={i}
+                                                                    className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded"
+                                                                >
+                                                                    {ctx}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Technical Projects */}
+                            {analysis.technicalResults.technicalProjects && (
+                                <div className="mt-12">
+                                    <div className="flex items-center gap-2 mb-6">
+                                        <ClipboardDocumentCheckIcon className="w-5 h-5 text-blue-600" />
+                                        <h3 className="text-lg font-semibold text-gray-700">Key Technical Projects</h3>
+                                    </div>
+                                    <div className="space-y-6">
+                                        {analysis.technicalResults.technicalProjects.map((project, index) => (
+                                            <div
+                                                key={project.name}
+                                                className="p-6 bg-gray-50 rounded-lg"
+                                            >
+                                                <h4 className="font-semibold text-gray-800 text-lg mb-2">{project.name}</h4>
+                                                <p className="text-gray-600 mb-3">{project.description}</p>
+                                                <p className="text-sm text-gray-700 mb-3">Role: {project.role}</p>
+
+                                                <div className="mb-4">
+                                                    <h5 className="text-sm font-medium text-gray-700 mb-2">Technologies Used:</h5>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {project.technologies.map((tech, i) => (
+                                                            <span
+                                                                key={i}
+                                                                className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded"
+                                                            >
+                                                                {tech}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <h5 className="text-sm font-medium text-gray-700 mb-2">Impact:</h5>
+                                                    <ul className="list-disc list-inside space-y-1">
+                                                        {project.impact.map((impact, i) => (
+                                                            <li key={i} className="text-sm text-gray-600">{impact}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {/* Recommendations */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.4 }}
+                        className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 mb-12"
+                    >
+                        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                            <BookOpenIcon className="w-6 h-6 text-green-600" />
+                            Recommendations
                         </h2>
 
                         <div className="space-y-4">
-                            {analysis.recommendations.map((recommendation, index) => (
+                            {profileResults.recommendations.map((rec, index) => (
                                 <motion.div
                                     key={index}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 1.4 + index * 0.1 }}
-                                    className="flex items-start gap-4 p-4 bg-blue-50 rounded-lg"
+                                    transition={{ delay: 1.6 + index * 0.1 }}
+                                    className={`flex items-start gap-4 p-4 rounded-lg ${rec.priority === 'high'
+                                        ? 'bg-red-50'
+                                        : rec.priority === 'medium'
+                                            ? 'bg-yellow-50'
+                                            : 'bg-green-50'
+                                        }`}
                                 >
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2" />
-                                    <p className="text-gray-700">{recommendation}</p>
+                                    <div className={`w-2 h-2 rounded-full mt-2 ${rec.priority === 'high'
+                                        ? 'bg-red-500'
+                                        : rec.priority === 'medium'
+                                            ? 'bg-yellow-500'
+                                            : 'bg-green-500'
+                                        }`} />
+                                    <div>
+                                        <p className="text-gray-700">{rec.description}</p>
+                                        <p className="text-sm text-gray-500 mt-1">Type: {rec.type}</p>
+                                    </div>
                                 </motion.div>
                             ))}
                         </div>
@@ -280,7 +569,7 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.6 }}
+                        transition={{ delay: 1.8 }}
                         className="text-center"
                     >
                         <button
@@ -292,7 +581,7 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                             <ArrowRightIcon className="w-5 h-5" />
                         </button>
                         <p className="text-gray-600 mt-4">
-                            Discover opportunities that match your Canadian skill profile
+                            Discover opportunities that match your profile
                         </p>
                     </motion.div>
                 </motion.div>

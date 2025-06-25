@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Analysis } from '@/lib/types';
@@ -5,6 +7,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { analysisService } from '@/lib/services/analysisService';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import Card from '../ui/Card';
+import { formatDateWithTime } from '@/lib/utils';
 
 export default function AnalysisList() {
     const router = useRouter();
@@ -51,7 +54,7 @@ export default function AnalysisList() {
                                 <div>
                                     <h3 className="font-semibold">Analysis #{analysis.id.slice(0, 8)}</h3>
                                     <p className="text-sm text-gray-600">
-                                        {new Date(analysis.createdAt).toLocaleDateString()}
+                                        {formatDateWithTime(analysis.createdAt)}
                                     </p>
                                 </div>
                                 <span className={`px-2 py-1 rounded-full text-xs ${analysis.status === 'completed' ? 'bg-green-100 text-green-800' :
@@ -62,16 +65,16 @@ export default function AnalysisList() {
                                 </span>
                             </div>
 
-                            {analysis.status === 'completed' && analysis.results && (
+                            {analysis.status === 'completed' && analysis.profileResults && (
                                 <div className="space-y-2">
                                     <p className="text-sm">
-                                        <span className="font-medium">Skills analyzed:</span> {analysis.results.skills.length}
+                                        <span className="font-medium">Skills analyzed:</span> {analysis.profileResults.skills.length}
                                     </p>
                                     <p className="text-sm">
-                                        <span className="font-medium">Experience entries:</span> {analysis.results.experience.length}
+                                        <span className="font-medium">Experience entries:</span> {analysis.profileResults.experience.length}
                                     </p>
                                     <p className="text-sm">
-                                        <span className="font-medium">Recommendations:</span> {analysis.results.recommendations.length}
+                                        <span className="font-medium">Recommendations:</span> {analysis.profileResults.recommendations.length}
                                     </p>
                                 </div>
                             )}

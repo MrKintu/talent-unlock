@@ -158,7 +158,7 @@ export interface Analysis {
     userId: string;
     resumeId: string;
     status: 'pending' | 'processing' | 'completed' | 'failed';
-    results?: {
+    profileResults?: {
         skills: Array<{
             name: string;
             level: string;
@@ -180,6 +180,30 @@ export interface Analysis {
             description: string;
             priority: 'high' | 'medium' | 'low';
         }>;
+    };
+    technicalResults?: {
+        technicalSkills: Array<{
+            name: string;
+            category: string;
+            level: string;
+            yearsOfExperience: number;
+            lastUsed: number;
+            context: string[];
+        }>;
+        technicalProjects: Array<{
+            name: string;
+            description: string;
+            technologies: string[];
+            role: string;
+            impact: string[];
+        }>;
+        certifications: Array<{
+            name: string;
+            issuer: string;
+            year: number;
+            relevance: string;
+        }>;
+        recommendations: string[];
     };
     createdAt: Date;
     completedAt?: Date;

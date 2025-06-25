@@ -12,12 +12,7 @@ export interface ResumeUploadResponse {
 
 export interface ResumeListResponse {
     success: boolean;
-    data: Array<{
-        id: string;
-        fileName: string;
-        fileUrl: string;
-        uploadDate: any;
-    }>;
+    data: any[];
     message?: string;
     error?: string;
 }
@@ -51,6 +46,19 @@ class ResumeService {
     async deleteResume(token: string, resumeId: string): Promise<{ success: boolean; message?: string; error?: string }> {
         const response = await fetch('/api/resumes', {
             method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ resumeId })
+        });
+
+        return response.json();
+    }
+
+    async setActiveResume(token: string, resumeId: string): Promise<{ success: boolean; message?: string; error?: string }> {
+        const response = await fetch('/api/resumes', {
+            method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`

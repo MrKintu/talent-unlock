@@ -7,6 +7,7 @@ import type { ResumeListResponse } from '@/lib/services/resumeService';
 import { analysisService } from '@/lib/services/analysisService';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import { Analysis } from '@/lib/types';
+import { formatDateWithTime } from '@/lib/utils';
 
 export default function ResumeManager() {
     const { user } = useAuth();
@@ -16,29 +17,6 @@ export default function ResumeManager() {
     const [error, setError] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState<string | null>(null);
     const [analyses, setAnalyses] = useState<Record<string, Analysis>>({});
-
-    const formatUploadDate = (uploadDate: any) => {
-        if (!uploadDate) return 'Unknown date';
-
-        let date;
-        // Handle Firestore Timestamp object
-        if (uploadDate._seconds) {
-            date = new Date(uploadDate._seconds * 1000);
-        } else {
-            // Handle regular Date object or string
-            date = new Date(uploadDate);
-        }
-
-        // Format date and time
-        return date.toLocaleString(undefined, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-    };
 
     const fetchResumes = async () => {
         if (!user) return;
@@ -185,7 +163,7 @@ export default function ResumeManager() {
                             <div>
                                 <h3 className="font-medium">{resume.fileName}</h3>
                                 <p className="text-sm text-gray-600">
-                                    Uploaded on {formatUploadDate(resume.uploadDate)}
+                                    Uploaded on {formatDateWithTime(resume.uploadDate)}
                                 </p>
                             </div>
                             <div className="flex items-center space-x-2">
