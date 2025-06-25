@@ -20,7 +20,7 @@ import toast from 'react-hot-toast';
 import { profileService } from '@/lib/services/profileService';
 import { UserProfile, Analysis } from '@/lib/types';
 import { analysisService } from '@/lib/services/analysisService';
-import { resumeService } from '@/lib/services/resumeService';
+import { ResumeListResponse, resumeService } from '@/lib/services/resumeService';
 
 interface RoadmapItem {
     id: string;
@@ -66,8 +66,10 @@ export default function RoadmapPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [roadmap, setRoadmap] = useState<RoadmapResponse['data'] | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile>(initialProfile);
-    const [analyses, setAnalyses] = useState<Analysis[]>([]);
     const [selectedAnalysisId, setSelectedAnalysisId] = useState<string>('');
+    const [resumes, setResumes] = useState<ResumeListResponse['data']>([]);
+    const [analyses, setAnalyses] = useState<Record<string, Analysis>>({});
+
     const [userInput, setUserInput] = useState({
         targetRole: '',
         currentSkills: '',
@@ -157,48 +159,23 @@ export default function RoadmapPage() {
             const token = await user.getIdToken();
             const result = await resumeService.listResumes(token);
             if (result.success && result.data) {
-                // const resumeWithAnalysis = result.data.map((resume: Resume) => ({
-                //     ...resume,
-                //     analysis: analysisService.getAnalysis(resume.id)
-                // }));
-
-                // setResumes(resumeWithAnalysis);
+                setResumes(result.data);
+                fetchAnalysesForResumes(token, result.data);
             }
         } catch (error) {
             console.error('Error fetching resume with analysis:', error);
         }
     };
 
-    const fetchResumeWithAnalysis = async () => {
-        if (!user) return;
+    const fetchAnalysesForResumes = async (token: string, resumes: any[]) => {
         try {
-            const token = await user.getIdToken();
-            const result = await resumeService.listResumesWithAnalysis(token);
-            if (result.success && result.data) {
-                // setResumesList(result.data);
-            }
-        } catch (error) {
-            console.error('Error fetching resume with analysis:', error);
-        }
-    };
-
-    const fetchAnalyses = async () => {
-        if (!user) return;
-        try {
-            const token = await user.getIdToken();
-            analysisService.getAnalysis
-            const response = await fetch('/api/analyze', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const result = await response.json();
-            if (result.success && result.data) {
-                // Filter only completed analyses with profile results
-                const completedAnalyses = result.data.filter((analysis: Analysis) =>
-                    analysis.status === 'completed' && analysis.profileResults
-                );
-                setAnalyses(completedAnalyses);
+            const response = await analysisService.getAnalysisList(token);
+            if (response.success) {
+                const analysisMap = response.data.reduce((acc: Record<string, Analysis>, analysis: Analysis) => {
+                    acc[analysis.resumeId] = analysis;
+                    return acc;
+                }, {});
+                setAnalyses(analysisMap);
             }
         } catch (error) {
             console.error('Error fetching analyses:', error);
@@ -207,16 +184,32 @@ export default function RoadmapPage() {
 
     const handleAnalysisSelect = (analysisId: string) => {
         setSelectedAnalysisId(analysisId);
-        const selectedAnalysis = analyses.find(analysis => analysis.id === analysisId);
+        const selectedAnalysis = analyses[analysisId];
 
         if (selectedAnalysis?.profileResults?.skills) {
             const skillsText = selectedAnalysis.profileResults.skills
                 .map(skill => `${skill.name} (${skill.level})`)
                 .join(', ');
 
+            const recommendations = selectedAnalysis.profileResults.recommendations.map(recommendation => recommendation.description).join(', ') || '';
+            const technicalSkills = selectedAnalysis.technicalResults?.technicalSkills.map(skill => skill.name).join(', ') || '';
+            const certifications = selectedAnalysis.technicalResults?.certifications.map(cert => cert.name).join(', ') || '';
+            const education = selectedAnalysis.profileResults?.education.map(edu => edu.degree).join(', ') || '';
+            const experience = selectedAnalysis.profileResults?.experience.map(exp => exp.role).join(', ') || '';
+            const skills = selectedAnalysis.profileResults?.skills.map(skill => skill.name).join(', ') || '';
+            const hiddenSkills = selectedAnalysis.ahaResults?.hiddenSkills.map(skill => skill.originalSkill.name).join(', ') || '';
+
             setUserInput(prev => ({
                 ...prev,
-                currentSkills: skillsText
+                currentSkills: `
+                    Skills: ${skillsText}
+                    Hidden Skills: ${hiddenSkills}
+                    Technical Skills: ${technicalSkills}
+                    Certifications: ${certifications}
+                    Education: ${education}
+                    Experience: ${experience}
+                    Recommendations: ${recommendations}
+                `
             }));
 
             toast.success('Skills loaded from analysis!');
@@ -226,8 +219,7 @@ export default function RoadmapPage() {
     useEffect(() => {
         if (user) {
             fetchUserProfile();
-            fetchResumeWithAnalysis();
-            fetchAnalyses();
+            fetchResumes();
         }
     }, [user]);
 
@@ -347,7 +339,7 @@ export default function RoadmapPage() {
                         </div>
 
                         {/* Resume Analysis Selection */}
-                        {analyses.length > 0 && (
+                        {resumes.length > 0 && (
                             <div className="mb-6">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Load Skills from Resume Analysis
@@ -359,9 +351,9 @@ export default function RoadmapPage() {
                                         className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                                     >
                                         <option value="">Select a resume analysis...</option>
-                                        {analyses.map((analysis) => (
-                                            <option key={analysis.id} value={analysis.id}>
-                                                {analysis.resumeId} - {analysis.profileResults?.skills?.length || 0} skills
+                                        {resumes.map((resume) => (
+                                            <option key={resume.id} value={resume.id} disabled={!analyses[resume.id]}>
+                                                {resume.fileName} - {analyses[resume.id]?.profileResults?.skills?.length || 0} skills
                                             </option>
                                         ))}
                                     </select>
@@ -524,6 +516,6 @@ export default function RoadmapPage() {
                     )}
                 </motion.div>
             </div>
-        </div>
+        </div >
     );
 } 

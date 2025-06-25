@@ -1,18 +1,15 @@
+import { ResumeUpload } from "../types";
+
 export interface ResumeUploadResponse {
     success: boolean;
-    data: {
-        fileUrl: string;
-        fileName: string;
-        uploadDate: any;
-        id: string;
-    };
+    data: ResumeUpload;
     message?: string;
     error?: string;
 }
 
 export interface ResumeListResponse {
     success: boolean;
-    data: any[];
+    data: ResumeUpload[];
     message?: string;
     error?: string;
 }
@@ -35,16 +32,6 @@ class ResumeService {
 
     async listResumes(token: string): Promise<ResumeListResponse> {
         const response = await fetch('/api/resumes', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        return response.json();
-    }
-
-    async listResumesWithAnalysis(token: string): Promise<ResumeListResponse> {
-        const response = await fetch('/api/resumes/analysis', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
