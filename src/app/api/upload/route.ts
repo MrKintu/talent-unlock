@@ -69,11 +69,7 @@ export async function POST(request: NextRequest) {
         await db.collection('resumes').doc(uploadData.id).set(uploadData);
 
         // Trigger document parsing in the background
-        DocumentParserService.processDocument(uploadData.id)
-            .catch(error => {
-                console.error('Background processing error:', error);
-                // Error handling is done within the service
-            });
+        await DocumentParserService.processDocument(uploadData.id)
 
         return NextResponse.json<ApiResponse<ResumeUpload>>({
             success: true,
