@@ -6,8 +6,6 @@ import { UserProfile } from '@/lib/types';
 import { PencilIcon, CheckIcon } from '@heroicons/react/24/outline';
 import BasicInfo from '@/components/profile/BasicInfo';
 import SocialLinks from '@/components/profile/SocialLinks';
-import SkillsSection from '@/components/profile/SkillsSection';
-import AchievementsSection from '@/components/profile/AchievementsSection';
 import ResumeManager from '@/components/profile/ResumeManager';
 import { profileService } from '@/lib/services/profileService';
 

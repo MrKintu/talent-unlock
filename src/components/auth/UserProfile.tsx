@@ -3,7 +3,7 @@
 import { useAuth } from '@/lib/auth/AuthContext';
 import { motion } from 'framer-motion';
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
-import { UserIcon } from '@heroicons/react/24/outline';
+import { ChartBarIcon, UserIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -68,38 +68,36 @@ export default function UserProfile() {
                     </div>
                 </div>
                 <div className="px-1 py-1">
-                    <MenuItem>
-                        {({ active }) => (
-                            <Link
-                                href="/profile"
-                                className={`group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium ${active ? 'bg-red-50 text-red-600' : 'text-gray-700'
-                                    }`}
-                            >
-                                <UserIcon className="w-4 h-4 mr-2" />
-                                Profile
-                            </Link>
-                        )}
+                    <MenuItem
+                        as={Link}
+                        href="/profile"
+                        className="group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 ui-active:bg-red-50 ui-active:text-red-600"
+                    >
+                        <UserIcon className="w-4 h-4 mr-2" />
+                        Profile
                     </MenuItem>
-                    <MenuItem>
-                        {({ active }) => (
-                            <motion.button
-                                whileHover={{ backgroundColor: '#FEF2F2' }}
-                                whileTap={{ scale: 0.95 }}
-                                className={`group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium ${active ? 'bg-red-50 text-red-600' : 'text-gray-700'
-                                    }`}
-                                onClick={logout}
-                            >
-                                <svg
-                                    className="w-4 h-4 mr-2"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
-                                </svg>
-                                Sign Out
-                            </motion.button>
-                        )}
+                    <MenuItem
+                        as={Link}
+                        href="/profile/gta-insights"
+                        className="group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 ui-active:bg-red-50 ui-active:text-red-600"
+                    >
+                        <ChartBarIcon className="w-4 h-4 mr-2" />
+                        GTA Insights
+                    </MenuItem>
+                    <MenuItem
+                        as="button"
+                        onClick={logout}
+                        className="group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 ui-active:bg-red-50 ui-active:text-red-600"
+                    >
+                        <svg
+                            className="w-4 h-4 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
+                        </svg>
+                        Sign Out
                     </MenuItem>
                 </div>
             </MenuItems>
