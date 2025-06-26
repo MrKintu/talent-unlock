@@ -73,6 +73,7 @@ CRITICAL: Ensure the response is complete, valid JSON. Do not include any text o
     const cleanText = text.replace(/```json\s*|\s*```/g, '').trim();
     let parsed: TechnicalSkillsAnalysis;
 
+    console.log('Parsed response:', cleanText);
     try {
       parsed = JSON.parse(cleanText);
     } catch (parseError) {
@@ -80,39 +81,58 @@ CRITICAL: Ensure the response is complete, valid JSON. Do not include any text o
 
       // More aggressive cleanup for common JSON issues
       let fixedText = cleanText
-        // Remove any non-JSON text after the last closing brace
+        // Remove any text before the first {
+        .replace(/^[^{]*/, '')
+        // Remove any text after the last }
         .replace(/}[^}]*$/, '}')
-        // Fix unterminated strings by adding missing quotes
-        .replace(/([{,]\s*"[^"]+"\s*:\s*"[^"]*$)/gm, '$1"')
-        // Fix unterminated arrays by adding missing brackets
-        .replace(/(\[[^\]]*$)/g, '$1]')
-        // Remove trailing commas in arrays and objects
+        // Fix escaped newlines
+        .replace(/\\n/g, ' ')
+        // Fix actual newlines in strings
+        .replace(/(["])([^"]*)\n([^"]*)(["])/g, '$1$2 $3$4')
+        // Fix missing quotes around string values
+        .replace(/:\s*([^",\{\[\]\}\s][^,\{\[\]\}]*[^",\{\[\]\}\s])(\s*[,\}\]])/g, ':"$1"$2')
+        // Remove trailing commas
         .replace(/,(\s*[}\]])/g, '$1')
-        // Fix missing commas between array elements
+        // Fix missing commas between objects
         .replace(/}(\s*{)/g, '},$1')
-        // Ensure all objects are properly closed
-        .replace(/([^}\]]\s*)$/gm, '$1}')
         .trim();
 
-      // If we still have an unterminated array at the root level, close it
-      const openBrackets = (fixedText.match(/\[/g) || []).length;
-      const closeBrackets = (fixedText.match(/\]/g) || []).length;
-      if (openBrackets > closeBrackets) {
-        fixedText += ']'.repeat(openBrackets - closeBrackets);
+      // Balance brackets and braces from the start
+      const stack = [];
+      const chars = fixedText.split('');
+      let balanced = '';
+
+      for (const char of chars) {
+        if (char === '{' || char === '[') {
+          stack.push(char);
+          balanced += char;
+        } else if (char === '}') {
+          if (stack[stack.length - 1] === '{') {
+            stack.pop();
+            balanced += char;
+          }
+        } else if (char === ']') {
+          if (stack[stack.length - 1] === '[') {
+            stack.pop();
+            balanced += char;
+          }
+        } else {
+          balanced += char;
+        }
       }
 
-      // If we still have an unterminated object at the root level, close it
-      const openBraces = (fixedText.match(/{/g) || []).length;
-      const closeBraces = (fixedText.match(/}/g) || []).length;
-      if (openBraces > closeBraces) {
-        fixedText += '}'.repeat(openBraces - closeBraces);
+      // Close any remaining open structures
+      while (stack.length > 0) {
+        const last = stack.pop();
+        balanced += last === '{' ? '}' : ']';
       }
+
+      console.log('Cleaned JSON:', balanced);
 
       try {
-        parsed = JSON.parse(fixedText);
+        parsed = JSON.parse(balanced);
       } catch (secondError) {
         console.error('Failed to parse even after cleanup:', secondError);
-        // Return a valid but empty structure rather than throwing
         parsed = {
           technicalSkills: [],
           technicalProjects: [],

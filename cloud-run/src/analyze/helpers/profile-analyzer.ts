@@ -56,82 +56,104 @@ export class ProfileAnalyzer extends BaseAnalyzer<ProfileAnalysis> {
         const { resumeText } = request;
         return `You are a resume analysis AI. Your task is to analyze the resume text and return ONLY a JSON object with no additional text, markdown formatting, or explanation.
 
-Resume Text:
-${resumeText}
-
-Return a JSON object with exactly this structure:
-{
-  "skills": [
-    {
-      "name": "skill name (max 50 chars)",
-      "level": "beginner/intermediate/advanced/expert",
-      "confidence": 0.95
-    }
-  ],
-  "experience": [
-    {
-      "role": "job title (max 100 chars)",
-      "company": "company name (max 100 chars)",
-      "duration": 24,
-      "highlights": ["achievement (max 200 chars per item, max 5 items)"]
-    }
-  ],
-  "education": [
-    {
-      "degree": "degree name (max 100 chars)",
-      "institution": "institution name (max 100 chars)",
-      "year": 2020,
-      "country": "country where degree was obtained",
-      "accreditation": "recognized/unrecognized/pending_verification",
-      "credibilityScore": 0.85,
-      "recognitionStatus": "fully_recognized/partially_recognized/requires_assessment/not_recognized",
-      "gapAnalysis": {
-        "missingRequirements": ["specific courses or requirements missing"],
-        "additionalSteps": ["credential evaluation", "licensing exam", "bridge courses"],
-        "estimatedTimeToEquivalency": 12,
-        "licensingExamsRequired": ["specific exam names if applicable"]
-      },
-      "equivalency": {
-        "localEquivalent": "equivalent degree/diploma in target location",
-        "coveragePercentage": 80,
-        "recognizingBodies": ["WES", "ICAS", "IQAS", "relevant professional bodies"]
-      }
-    }
-  ],
-  "recommendations": [
-    {
-      "type": "skill/certification/experience/education_upgrade",
-      "description": "detailed recommendation (max 200 chars)",
-      "priority": "high/medium/low",
-      "category": "immediate/short_term/long_term",
-      "actionable": true,
-      "timeframe": "1-3 months/3-6 months/6-12 months/1+ years"
-    }
-  ]
-}
-
-GAP ANALYSIS GUIDELINES:
-- If the user has a gap in their education, provide a recommendation to upgrade their education.
-- If the user has a gap in their skills, provide a recommendation to upgrade their skills.
-- If the user has a gap in their experience, provide a recommendation to upgrade their experience.
-- If the user has a gap in their certifications, provide a recommendation to upgrade their certifications.
-- If the user has a gap in their projects, provide a recommendation to upgrade their projects.
-
-RECOMMENDATIONS GUIDELINES:
-- If the user has a gap in their education, provide a recommendation to upgrade their education.
-- If the user has a gap in their skills, provide a recommendation to upgrade their skills.
-- If the user has a gap in their experience, provide a recommendation to upgrade their experience.
-- If the user has a gap in their certifications, provide a recommendation to upgrade their certifications.
-- If the user has a gap in their projects, provide a recommendation to upgrade their projects.
-- If the user has a gap in their tools, provide a recommendation to upgrade their tools.
-- If the user has a gap in their methodologies, provide a recommendation to upgrade their methodologies.
-
-IMPORTANT:
-1. Return ONLY the JSON object. Do not include any markdown formatting, explanations, or additional text.
-2. Strictly follow the character limits for each field.
-3. For experience highlights, include at most 5 most important achievements.
-4. Ensure all strings are properly escaped and terminated.
-5. For education analysis, provide realistic assessments of international credential recognition and equivalency.`;
+        Resume Text:
+        ${resumeText}
+        
+        Today's date is ${new Date().toISOString().split('T')[0]}.
+        
+        Return a JSON object with exactly this structure:
+        {
+          "skills": [
+            {
+              "name": "skill name (max 50 chars)",
+              "level": "beginner/intermediate/advanced/expert",
+              "confidence": 0.95
+            }
+          ],
+          "experience": [
+            {
+              "role": "job title (max 100 chars)",
+              "company": "company name (max 100 chars)",
+              "duration": 24,
+              "highlights": ["achievement (max 200 chars per item, max 5 items)"]
+            }
+          ],
+          "education": [
+            {
+              "degree": "degree name (max 100 chars)",
+              "institution": "institution name (max 100 chars)",
+              "year": 2020,
+              "country": "country where degree was obtained",
+              "accreditation": "recognized/unrecognized/pending_verification",
+              "credibilityScore": 0.85,
+              "recognitionStatus": "fully_recognized/partially_recognized/requires_assessment/not_recognized",
+              "gapAnalysis": {
+                "missingRequirements": ["specific courses or requirements missing"],
+                "additionalSteps": ["credential evaluation", "licensing exam", "bridge courses"],
+                "estimatedTimeToEquivalency": 12,
+                "licensingExamsRequired": ["specific exam names if applicable"]
+              },
+              "equivalency": {
+                "localEquivalent": "equivalent degree/diploma in target location",
+                "coveragePercentage": 80,
+                "recognizingBodies": ["WES", "ICAS", "IQAS", "relevant professional bodies"]
+              }
+            }
+          ],
+          "recommendations": [
+            {
+              "type": "skill/certification/experience/education_upgrade",
+              "description": "detailed recommendation (max 200 chars)",
+              "priority": "high/medium/low",
+              "category": "immediate/short_term/long_term",
+              "actionable": true,
+              "timeframe": "1-3 months/3-6 months/6-12 months/1+ years"
+            }
+          ]
+        }
+        
+        EXPERIENCE DURATION CALCULATION RULES:
+        1. If end date contains "present", "current", "now", or is missing, use current date (${new Date().toISOString().split('T')[0]}) as end date.
+        2. Calculate months accurately using this logic:
+           - Parse start and end dates carefully (handle formats like "11/2012", "Nov 2012", "November 2012", "2012-11", etc.)
+           - For "11, 2012 - 12, 2014": Start = November 2012, End = December 2014 = 25 months
+           - For "Jan 2020 - Present": Start = January 2020, End = Current date
+           - For "2019 - 2021": Start = January 2019, End = December 2021 = 36 months
+           - For overlapping periods, count actual months worked
+        3. Duration calculation examples:
+           - "Jan 2020 - Dec 2020" = 12 months
+           - "Nov 2012 - Dec 2014" = 25 months (Nov 2012 to Dec 2014)
+           - "Mar 2021 - Present" = months from March 2021 to current date
+           - "2019 - 2020" = 24 months (assume full years Jan to Dec)
+        4. If only year is provided (e.g., "2019 - 2021"), assume January start and December end.
+        5. Round partial months up to nearest whole month.
+        
+        GAP ANALYSIS GUIDELINES:
+        - If the user has a gap in their education, provide a recommendation to upgrade their education.
+        - If the user has a gap in their skills, provide a recommendation to upgrade their skills.
+        - If the user has a gap in their experience, provide a recommendation to upgrade their experience.
+        - If the user has a gap in their certifications, provide a recommendation to upgrade their certifications.
+        - If the user has a gap in their projects, provide a recommendation to upgrade their projects.
+        
+        RECOMMENDATIONS GUIDELINES:
+        - If the user has a gap in their education, provide a recommendation to upgrade their education.
+        - If the user has a gap in their skills, provide a recommendation to upgrade their skills.
+        - If the user has a gap in their experience, provide a recommendation to upgrade their experience.
+        - If the user has a gap in their certifications, provide a recommendation to upgrade their certifications.
+        - If the user has a gap in their projects, provide a recommendation to upgrade their projects.
+        - If the user has a gap in their tools, provide a recommendation to upgrade their tools.
+        - If the user has a gap in their methodologies, provide a recommendation to upgrade their methodologies.
+        
+        IMPORTANT:
+        1. Return ONLY the JSON object. Do not include any markdown formatting, explanations, or additional text.
+        2. Strictly follow the character limits for each field.
+        3. For experience highlights, include at most 5 most important achievements.
+        4. Ensure all strings are properly escaped and terminated.
+        5. For education analysis, provide realistic assessments of international credential recognition and equivalency.
+        6. For experience duration, calculate months accurately using the rules above. Double-check your month calculations.
+        7. Pay special attention to date formats and handle "present", "current", "ongoing" as current date.
+        
+        `;
     }
 
     protected parseResponse(text: string): ProfileAnalysis {
@@ -155,6 +177,8 @@ IMPORTANT:
                     .trim();
                 parsed = JSON.parse(fixedText);
             }
+
+            console.log('Parsed response:', parsed);
 
             // Validate and sanitize the data
             return {

@@ -256,7 +256,7 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                                     className="p-6 bg-gray-50 rounded-lg"
                                 >
                                     <h3 className="font-semibold text-gray-800 text-lg mb-2">{exp.role}</h3>
-                                    <p className="text-gray-600 mb-3">{exp.company} • {exp.duration} years</p>
+                                    <p className="text-gray-600 mb-3">{exp.company} • {exp.duration} Months</p>
                                     <ul className="list-disc list-inside space-y-2">
                                         {exp.highlights.map((highlight, i) => (
                                             <li key={i} className="text-gray-700">{highlight}</li>
