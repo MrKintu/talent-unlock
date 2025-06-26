@@ -19,9 +19,4 @@ app.use('/analyze', analyzeRouter);
 // Start the server and log the port
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
-    console.log('Environment:', {
-        VERTEX_AI_PROJECT_ID: process.env.VERTEX_AI_PROJECT_ID,
-        GOOGLE_CLOUD_PROJECT_ID: process.env.VERTEX_AI_PROJECT_ID,
-        PORT: process.env.PORT
-    });
 }); 

@@ -29,13 +29,6 @@ export class AnalysisService {
     static async create(request: CreateAnalysisRequest) {
         const { userId, resumeId, analysisId = null, retry = false } = request;
 
-        console.log('Creating analysis', {
-            userId,
-            resumeId,
-            analysisId,
-            retry
-        });
-
         // Get User data
         const userDoc = await db.collection('userProfile').doc(userId).get();
         if (!userDoc.exists) {

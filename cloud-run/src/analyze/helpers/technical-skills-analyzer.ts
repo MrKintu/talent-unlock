@@ -110,7 +110,6 @@ CRITICAL: Ensure the response is complete, valid JSON. Do not include any text o
 
       try {
         parsed = JSON.parse(fixedText);
-        console.log('Successfully parsed after cleanup');
       } catch (secondError) {
         console.error('Failed to parse even after cleanup:', secondError);
         // Return a valid but empty structure rather than throwing

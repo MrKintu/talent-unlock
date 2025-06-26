@@ -11,7 +11,6 @@ import LoginButton from '@/components/auth/LoginButton';
 const Navigation = () => {
     const [isOpen, setIsOpen] = useState(false);
     const { user } = useAuth();
-    console.log(`debug: user`, user);
 
     const navItems = [
         { name: 'Home', href: '/' },

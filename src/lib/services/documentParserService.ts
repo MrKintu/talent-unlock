@@ -49,8 +49,6 @@ export class DocumentParserService {
                 updatedAt: new Date()
             });
 
-            console.log('debug: Document parsed successfully');
-
         } catch (error: unknown) {
             console.error('Error processing document:', error);
             await db.collection('resumes').doc(resumeId).update({

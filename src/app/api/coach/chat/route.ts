@@ -163,7 +163,6 @@ export async function POST(request: NextRequest) {
                 break;
         }
 
-        console.log('debug: System prompt', systemPrompt);
         // Build conversation history for context
         const conversationContext = conversationHistory
             .slice(-10) // Keep last 10 messages for context

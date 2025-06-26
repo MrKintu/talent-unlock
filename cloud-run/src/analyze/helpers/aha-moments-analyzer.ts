@@ -75,7 +75,6 @@ IMPORTANT:
         parsed = JSON.parse(fixedText);
       }
 
-      console.log('debug: parsed', parsed);
       // Validate the structure and return
       return {
         hiddenSkills: Array.isArray(parsed?.hiddenSkills)
