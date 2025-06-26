@@ -2,6 +2,12 @@
 
 **HackTheBrain 2025 Project** | **Category**: Community – Newcomers & Access to White-Collar Work
 
+<div align="center">
+  
+  [![TalentUnlock Demo](https://img.shields.io/badge/▶️-Watch%20Demo-red?style=for-the-badge)](https://share.synthesia.io/14edb68b-71cd-47c9-9121-fcb21350af7b)
+  
+</div>
+
 ## 🌟 Project Overview
 
 TalentUnlock is an AI-powered platform that helps skilled immigrants translate their international experience into Canadian job opportunities. We address the critical problem where 25% of immigrants with foreign degrees end up in jobs requiring only high school education.
