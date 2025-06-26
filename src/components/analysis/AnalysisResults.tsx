@@ -199,6 +199,81 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                         <AhaMoments analysis={analysis} />
                     </motion.div>
 
+                    {/* Recommendations */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.4 }}
+                        className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 mb-12"
+                    >
+                        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                            <BookOpenIcon className="w-6 h-6 text-green-600" />
+                            Recommendations
+                        </h2>
+
+                        <div className="space-y-4">
+                            {profileResults.recommendations.map((rec, index) => (
+                                <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 1.6 + index * 0.1 }}
+                                    className={`flex items-start gap-4 p-4 rounded-lg ${rec.priority === 'high'
+                                        ? 'bg-red-50'
+                                        : rec.priority === 'medium'
+                                            ? 'bg-yellow-50'
+                                            : 'bg-green-50'
+                                        }`}
+                                >
+                                    <div className={`w-2 h-2 rounded-full mt-2 ${rec.priority === 'high'
+                                        ? 'bg-red-500'
+                                        : rec.priority === 'medium'
+                                            ? 'bg-yellow-500'
+                                            : 'bg-green-500'
+                                        }`} />
+                                    <div className="flex-1">
+                                        <p className="text-gray-700 mb-2">{rec.description}</p>
+                                        <div className="flex flex-wrap gap-2 items-center">
+                                            <span className={`text-xs px-2 py-1 rounded ${rec.type === 'education_upgrade'
+                                                ? 'bg-purple-100 text-purple-700'
+                                                : rec.type === 'certification'
+                                                    ? 'bg-blue-100 text-blue-700'
+                                                    : rec.type === 'experience'
+                                                        ? 'bg-orange-100 text-orange-700'
+                                                        : 'bg-green-100 text-green-700'
+                                                }`}>
+                                                {rec.type.replace('_', ' ')}
+                                            </span>
+                                            <span className={`text-xs px-2 py-1 rounded ${rec.priority === 'high'
+                                                ? 'bg-red-100 text-red-700'
+                                                : rec.priority === 'medium'
+                                                    ? 'bg-yellow-100 text-yellow-700'
+                                                    : 'bg-green-100 text-green-700'
+                                                }`}>
+                                                {rec.priority}
+                                            </span>
+                                            {rec.category && (
+                                                <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
+                                                    {rec.category.replace('_', ' ')}
+                                                </span>
+                                            )}
+                                            {rec.actionable && (
+                                                <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-700">
+                                                    Actionable
+                                                </span>
+                                            )}
+                                            {rec.timeframe && (
+                                                <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
+                                                    {rec.timeframe}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+
                     {/* Skills Section */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -229,179 +304,6 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                                     <div className="text-sm font-medium text-gray-500">
                                         {Math.round(skill.confidence * 100)}%
                                     </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
-
-                    {/* Experience Section */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.0 }}
-                        className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 mb-12"
-                    >
-                        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                            <BriefcaseIcon className="w-6 h-6 text-blue-600" />
-                            Experience
-                        </h2>
-
-                        <div className="space-y-6">
-                            {profileResults.experience.map((exp, index) => (
-                                <motion.div
-                                    key={`${exp.company}-${exp.role}`}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 1.2 + index * 0.1 }}
-                                    className="p-6 bg-gray-50 rounded-lg"
-                                >
-                                    <h3 className="font-semibold text-gray-800 text-lg mb-2">{exp.role}</h3>
-                                    <p className="text-gray-600 mb-3">{exp.company} • {exp.duration} Months</p>
-                                    <ul className="list-disc list-inside space-y-2">
-                                        {exp.highlights.map((highlight, i) => (
-                                            <li key={i} className="text-gray-700">{highlight}</li>
-                                        ))}
-                                    </ul>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
-
-                    {/* Education Section */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.2 }}
-                        className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 mb-12"
-                    >
-                        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                            <AcademicCapIcon className="w-6 h-6 text-purple-600" />
-                            Education
-                        </h2>
-
-                        <div className="space-y-6">
-                            {profileResults.education.map((edu, index) => (
-                                <motion.div
-                                    key={`${edu.institution}-${edu.degree}`}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 1.4 + index * 0.1 }}
-                                    className="p-6 bg-gray-50 rounded-lg"
-                                >
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div>
-                                            <h3 className="font-semibold text-gray-800 text-lg mb-1">{edu.degree}</h3>
-                                            <p className="text-gray-600">{edu.institution}</p>
-                                            {edu.country && (
-                                                <p className="text-sm text-gray-500">Country: {edu.country}</p>
-                                            )}
-                                        </div>
-                                        <div className="text-right">
-                                            <span className="text-gray-500">{edu.year}</span>
-                                            {edu.credibilityScore && (
-                                                <div className="text-sm text-gray-600 mt-1">
-                                                    Credibility: {Math.round(edu.credibilityScore * 100)}%
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Accreditation and Recognition Status */}
-                                    {(edu.accreditation || edu.recognitionStatus) && (
-                                        <div className="flex flex-wrap gap-2 mb-3">
-                                            {edu.accreditation && (
-                                                <span className={`text-xs px-2 py-1 rounded ${edu.accreditation === 'recognized'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : edu.accreditation === 'pending_verification'
-                                                        ? 'bg-yellow-100 text-yellow-700'
-                                                        : 'bg-red-100 text-red-700'
-                                                    }`}>
-                                                    {edu.accreditation.replace('_', ' ')}
-                                                </span>
-                                            )}
-                                            {edu.recognitionStatus && (
-                                                <span className={`text-xs px-2 py-1 rounded ${edu.recognitionStatus === 'fully_recognized'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : edu.recognitionStatus === 'partially_recognized'
-                                                        ? 'bg-blue-100 text-blue-700'
-                                                        : edu.recognitionStatus === 'requires_assessment'
-                                                            ? 'bg-yellow-100 text-yellow-700'
-                                                            : 'bg-red-100 text-red-700'
-                                                    }`}>
-                                                    {edu.recognitionStatus.replace('_', ' ')}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Equivalency Information */}
-                                    {edu.equivalency && (
-                                        <div className="mb-3 p-3 bg-blue-50 rounded-lg">
-                                            <h4 className="font-medium text-blue-800 mb-2">Equivalency Analysis</h4>
-                                            <p className="text-sm text-blue-700 mb-1">
-                                                <span className="font-medium">Local Equivalent:</span> {edu.equivalency.localEquivalent}
-                                            </p>
-                                            <p className="text-sm text-blue-700 mb-1">
-                                                <span className="font-medium">Coverage:</span> {edu.equivalency.coveragePercentage}%
-                                            </p>
-                                            {edu.equivalency.recognizingBodies.length > 0 && (
-                                                <div className="text-sm text-blue-700">
-                                                    <span className="font-medium">Recognizing Bodies:</span>
-                                                    <div className="flex flex-wrap gap-1 mt-1">
-                                                        {edu.equivalency.recognizingBodies.map((body, i) => (
-                                                            <span key={i} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                                                {body}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Gap Analysis */}
-                                    {edu.gapAnalysis && (
-                                        <div className="p-3 bg-yellow-50 rounded-lg">
-                                            <h4 className="font-medium text-yellow-800 mb-2">Gap Analysis</h4>
-                                            {edu.gapAnalysis.missingRequirements.length > 0 && (
-                                                <div className="mb-2">
-                                                    <p className="text-sm font-medium text-yellow-700 mb-1">Missing Requirements:</p>
-                                                    <ul className="text-sm text-yellow-700 list-disc list-inside">
-                                                        {edu.gapAnalysis.missingRequirements.map((req, i) => (
-                                                            <li key={i}>{req}</li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
-                                            {edu.gapAnalysis.additionalSteps.length > 0 && (
-                                                <div className="mb-2">
-                                                    <p className="text-sm font-medium text-yellow-700 mb-1">Additional Steps:</p>
-                                                    <ul className="text-sm text-yellow-700 list-disc list-inside">
-                                                        {edu.gapAnalysis.additionalSteps.map((step, i) => (
-                                                            <li key={i}>{step}</li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
-                                            {edu.gapAnalysis.estimatedTimeToEquivalency > 0 && (
-                                                <p className="text-sm text-yellow-700">
-                                                    <span className="font-medium">Estimated Time to Equivalency:</span> {edu.gapAnalysis.estimatedTimeToEquivalency} months
-                                                </p>
-                                            )}
-                                            {edu.gapAnalysis.licensingExamsRequired.length > 0 && (
-                                                <div className="mt-2">
-                                                    <p className="text-sm font-medium text-yellow-700 mb-1">Licensing Exams Required:</p>
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {edu.gapAnalysis.licensingExamsRequired.map((exam, i) => (
-                                                            <span key={i} className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                                                                {exam}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
                                 </motion.div>
                             ))}
                         </div>
@@ -644,80 +546,180 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                         </motion.div>
                     )}
 
-                    {/* Recommendations */}
+                    {/* Experience Section */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.4 }}
+                        transition={{ delay: 1.0 }}
                         className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 mb-12"
                     >
                         <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                            <BookOpenIcon className="w-6 h-6 text-green-600" />
-                            Recommendations
+                            <BriefcaseIcon className="w-6 h-6 text-blue-600" />
+                            Experience
                         </h2>
 
-                        <div className="space-y-4">
-                            {profileResults.recommendations.map((rec, index) => (
+                        <div className="space-y-6">
+                            {profileResults.experience.map((exp, index) => (
                                 <motion.div
-                                    key={index}
+                                    key={`${exp.company}-${exp.role}`}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 1.6 + index * 0.1 }}
-                                    className={`flex items-start gap-4 p-4 rounded-lg ${rec.priority === 'high'
-                                        ? 'bg-red-50'
-                                        : rec.priority === 'medium'
-                                            ? 'bg-yellow-50'
-                                            : 'bg-green-50'
-                                        }`}
+                                    transition={{ delay: 1.2 + index * 0.1 }}
+                                    className="p-6 bg-gray-50 rounded-lg"
                                 >
-                                    <div className={`w-2 h-2 rounded-full mt-2 ${rec.priority === 'high'
-                                        ? 'bg-red-500'
-                                        : rec.priority === 'medium'
-                                            ? 'bg-yellow-500'
-                                            : 'bg-green-500'
-                                        }`} />
-                                    <div className="flex-1">
-                                        <p className="text-gray-700 mb-2">{rec.description}</p>
-                                        <div className="flex flex-wrap gap-2 items-center">
-                                            <span className={`text-xs px-2 py-1 rounded ${rec.type === 'education_upgrade'
-                                                ? 'bg-purple-100 text-purple-700'
-                                                : rec.type === 'certification'
-                                                    ? 'bg-blue-100 text-blue-700'
-                                                    : rec.type === 'experience'
-                                                        ? 'bg-orange-100 text-orange-700'
-                                                        : 'bg-green-100 text-green-700'
-                                                }`}>
-                                                {rec.type.replace('_', ' ')}
-                                            </span>
-                                            <span className={`text-xs px-2 py-1 rounded ${rec.priority === 'high'
-                                                ? 'bg-red-100 text-red-700'
-                                                : rec.priority === 'medium'
-                                                    ? 'bg-yellow-100 text-yellow-700'
-                                                    : 'bg-green-100 text-green-700'
-                                                }`}>
-                                                {rec.priority}
-                                            </span>
-                                            {rec.category && (
-                                                <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
-                                                    {rec.category.replace('_', ' ')}
-                                                </span>
-                                            )}
-                                            {rec.actionable && (
-                                                <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-700">
-                                                    Actionable
-                                                </span>
-                                            )}
-                                            {rec.timeframe && (
-                                                <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
-                                                    {rec.timeframe}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
+                                    <h3 className="font-semibold text-gray-800 text-lg mb-2">{exp.role}</h3>
+                                    <p className="text-gray-600 mb-3">{exp.company} • {exp.duration} Months</p>
+                                    <ul className="list-disc list-inside space-y-2">
+                                        {exp.highlights.map((highlight, i) => (
+                                            <li key={i} className="text-gray-700">{highlight}</li>
+                                        ))}
+                                    </ul>
                                 </motion.div>
                             ))}
                         </div>
                     </motion.div>
+
+                    {/* Education Section */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.2 }}
+                        className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20 mb-12"
+                    >
+                        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                            <AcademicCapIcon className="w-6 h-6 text-purple-600" />
+                            Education
+                        </h2>
+
+                        <div className="space-y-6">
+                            {profileResults.education.map((edu, index) => (
+                                <motion.div
+                                    key={`${edu.institution}-${edu.degree}`}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 1.4 + index * 0.1 }}
+                                    className="p-6 bg-gray-50 rounded-lg"
+                                >
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h3 className="font-semibold text-gray-800 text-lg mb-1">{edu.degree}</h3>
+                                            <p className="text-gray-600">{edu.institution}</p>
+                                            {edu.country && (
+                                                <p className="text-sm text-gray-500">Country: {edu.country}</p>
+                                            )}
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-gray-500">{edu.year}</span>
+                                            {edu.credibilityScore && (
+                                                <div className="text-sm text-gray-600 mt-1">
+                                                    Credibility: {Math.round(edu.credibilityScore * 100)}%
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Accreditation and Recognition Status */}
+                                    {(edu.accreditation || edu.recognitionStatus) && (
+                                        <div className="flex flex-wrap gap-2 mb-3">
+                                            {edu.accreditation && (
+                                                <span className={`text-xs px-2 py-1 rounded ${edu.accreditation === 'recognized'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : edu.accreditation === 'pending_verification'
+                                                        ? 'bg-yellow-100 text-yellow-700'
+                                                        : 'bg-red-100 text-red-700'
+                                                    }`}>
+                                                    {edu.accreditation.replace('_', ' ')}
+                                                </span>
+                                            )}
+                                            {edu.recognitionStatus && (
+                                                <span className={`text-xs px-2 py-1 rounded ${edu.recognitionStatus === 'fully_recognized'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : edu.recognitionStatus === 'partially_recognized'
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : edu.recognitionStatus === 'requires_assessment'
+                                                            ? 'bg-yellow-100 text-yellow-700'
+                                                            : 'bg-red-100 text-red-700'
+                                                    }`}>
+                                                    {edu.recognitionStatus.replace('_', ' ')}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Equivalency Information */}
+                                    {edu.equivalency && (
+                                        <div className="mb-3 p-3 bg-blue-50 rounded-lg">
+                                            <h4 className="font-medium text-blue-800 mb-2">Equivalency Analysis</h4>
+                                            <p className="text-sm text-blue-700 mb-1">
+                                                <span className="font-medium">Local Equivalent:</span> {edu.equivalency.localEquivalent}
+                                            </p>
+                                            <p className="text-sm text-blue-700 mb-1">
+                                                <span className="font-medium">Coverage:</span> {edu.equivalency.coveragePercentage}%
+                                            </p>
+                                            {edu.equivalency.recognizingBodies.length > 0 && (
+                                                <div className="text-sm text-blue-700">
+                                                    <span className="font-medium">Recognizing Bodies:</span>
+                                                    <div className="flex flex-wrap gap-1 mt-1">
+                                                        {edu.equivalency.recognizingBodies.map((body, i) => (
+                                                            <span key={i} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                                                {body}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Gap Analysis */}
+                                    {edu.gapAnalysis && (
+                                        <div className="p-3 bg-yellow-50 rounded-lg">
+                                            <h4 className="font-medium text-yellow-800 mb-2">Gap Analysis</h4>
+                                            {edu.gapAnalysis.missingRequirements.length > 0 && (
+                                                <div className="mb-2">
+                                                    <p className="text-sm font-medium text-yellow-700 mb-1">Missing Requirements:</p>
+                                                    <ul className="text-sm text-yellow-700 list-disc list-inside">
+                                                        {edu.gapAnalysis.missingRequirements.map((req, i) => (
+                                                            <li key={i}>{req}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                            {edu.gapAnalysis.additionalSteps.length > 0 && (
+                                                <div className="mb-2">
+                                                    <p className="text-sm font-medium text-yellow-700 mb-1">Additional Steps:</p>
+                                                    <ul className="text-sm text-yellow-700 list-disc list-inside">
+                                                        {edu.gapAnalysis.additionalSteps.map((step, i) => (
+                                                            <li key={i}>{step}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                            {edu.gapAnalysis.estimatedTimeToEquivalency > 0 && (
+                                                <p className="text-sm text-yellow-700">
+                                                    <span className="font-medium">Estimated Time to Equivalency:</span> {edu.gapAnalysis.estimatedTimeToEquivalency} months
+                                                </p>
+                                            )}
+                                            {edu.gapAnalysis.licensingExamsRequired.length > 0 && (
+                                                <div className="mt-2">
+                                                    <p className="text-sm font-medium text-yellow-700 mb-1">Licensing Exams Required:</p>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {edu.gapAnalysis.licensingExamsRequired.map((exam, i) => (
+                                                            <span key={i} className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                                                                {exam}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+
+
 
                     {/* CTA */}
                     {/* <motion.div

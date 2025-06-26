@@ -6,7 +6,7 @@
   
   [![TalentUnlock Demo](https://img.shields.io/badge/▶️-Watch%20Demo-red?style=for-the-badge)](https://share.synthesia.io/14edb68b-71cd-47c9-9121-fcb21350af7b)
   
-  [![TalentUnlock Presentation](https://img.shields.io/badge/📊-View%20Presentation-blue?style=for-the-badge)](https://gamma.app/docs/Welcome-to-HackTheBrain-2025-TalentUnlock-4fo7g3lwvvoz0xf)
+  [![TalentUnlock Presentation](https://img.shields.io/badge/📊-View%20Presentation-blue?style=for-the-badge)](https://gamma.app/docs/by-Cloud-JED-AI-4fo7g3lwvvoz0xf)
 
   ### Built With
   

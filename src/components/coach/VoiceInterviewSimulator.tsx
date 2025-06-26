@@ -343,8 +343,8 @@ export default function VoiceInterviewSimulator({ isActive, onTranscriptUpdate }
                 {/* Feedback indicators */}
                 <div className="grid grid-cols-2 gap-4">
                     <FeedbackIndicator label="Confidence" value={emotions.confidence} color="blue" />
+                    <FeedbackIndicator label="Engagement" value={emotions.engagement} color="yellow" />
                     <FeedbackIndicator label="Clarity" value={emotions.clarity} color="green" />
-                    <FeedbackIndicator label="Engagement" value={emotions.engagement} color="purple" />
                     <FeedbackIndicator label="Nervousness" value={emotions.nervousness} color="red" />
                 </div>
 
