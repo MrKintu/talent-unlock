@@ -232,9 +232,9 @@ export default function ResumeUpload() {
             const token = await user.getIdToken(true);
             const response = await resumeService.uploadResume(token, file);
 
-            if (response.success) {
+            if (response.success && response.data) {
                 toast.success('File uploaded successfully!');
-                await handleUploadSuccess(response.data.fileUrl);
+                await handleUploadSuccess();
             } else {
                 throw new Error(response.error || 'Upload failed');
             }
@@ -290,7 +290,7 @@ export default function ResumeUpload() {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
-    const handleUploadSuccess = async (downloadUrl: string) => {
+    const handleUploadSuccess = async () => {
         try {
             // Update upload progress
             setUploadProgress({

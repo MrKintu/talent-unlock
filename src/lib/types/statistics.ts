@@ -53,7 +53,7 @@ export interface RegionalBreakdown {
     employmentRate: number;
     unemploymentRate: number;
     participationRate: number;
-    yearOverYearChange: number;
+    yearOverYearChange?: number;
     topIndustries: ReadonlyArray<IndustryEmployment>;
 }
 

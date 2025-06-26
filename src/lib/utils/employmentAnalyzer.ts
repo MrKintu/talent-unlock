@@ -69,15 +69,15 @@ export class EmploymentAnalyzer {
 
         // Analyze regional opportunities
         regional.forEach(region => {
-            if (region.yearOverYearChange > this.GROWTH_THRESHOLD * 100) {
+            if (region.yearOverYearChange && region.yearOverYearChange > this.GROWTH_THRESHOLD * 100) {
                 signals.push({
                     type: 'regional_opportunity',
                     region: region.region,
-                    strength: Math.min(10, Math.round(region.yearOverYearChange / 2)),
+                    strength: Math.min(10, Math.round(region.yearOverYearChange ?? 0 / 2)),
                     data: `Strong job market growth in ${region.region}`,
                     source: 'Statistics Canada',
                     date: new Date().toISOString(),
-                    confidence: this.calculateConfidence(region.yearOverYearChange, 0)
+                    confidence: this.calculateConfidence(region.yearOverYearChange ?? 0, 0)
                 });
             }
         });
