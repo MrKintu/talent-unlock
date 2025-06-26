@@ -720,7 +720,7 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                     </motion.div>
 
                     {/* CTA */}
-                    <motion.div
+                    {/* <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 1.8 }}
@@ -737,7 +737,7 @@ const AnalysisResults = ({ analysisId }: AnalysisResultsProps) => {
                         <p className="text-gray-600 mt-4">
                             Discover opportunities that match your profile
                         </p>
-                    </motion.div>
+                    </motion.div> */}
                 </motion.div>
             </div>
         </div>

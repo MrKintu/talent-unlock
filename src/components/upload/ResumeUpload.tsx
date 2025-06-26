@@ -201,6 +201,9 @@ export default function ResumeUpload() {
                 throw new Error(profileResponse.error || 'Failed to save background info');
             }
 
+            // Fetch updated resumes list
+            await fetchResumes();
+
             // Get the most recently uploaded resume
             const latestResume = resumes[resumes.length - 1];
             if (latestResume) {
@@ -298,6 +301,9 @@ export default function ResumeUpload() {
                 status: 'completed'
             });
 
+            // Fetch updated resumes list
+            await fetchResumes();
+
             // Move to background step
             setCurrentStep('background');
 
@@ -367,10 +373,7 @@ export default function ResumeUpload() {
 
         if (isProcessing || analysis?.status === 'processing') {
             return (
-                <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg">
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-yellow-600 border-t-transparent" />
-                    <span className="text-sm font-medium">Analyzing...</span>
-                </div>
+                <></>
             );
         }
 
