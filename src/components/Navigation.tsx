@@ -41,23 +41,26 @@ const Navigation = () => {
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center space-x-8">
-                        <Link href="/jobs" className="text-gray-600 hover:text-red-600">
+                        {/* <Link href="/jobs" className="text-gray-600 hover:text-red-600">
                             Browse Jobs
-                        </Link>
+                        </Link> */}
 
                         {user ? (
                             <>
+                                <Link
+                                    href="/upload"
+                                    className="text-gray-600 hover:text-red-600"
+                                >
+                                    Upload Resume
+                                </Link>
                                 <Link href="/analysis" className="text-gray-600 hover:text-red-600">
                                     Analysis
                                 </Link>
                                 <Link href="/roadmap" className="text-gray-600 hover:text-red-600">
                                     Roadmap
                                 </Link>
-                                <Link
-                                    href="/upload"
-                                    className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium"
-                                >
-                                    Upload Resume
+                                <Link href="/coach" className="text-gray-600 hover:text-red-600">
+                                    AI Coach
                                 </Link>
                                 <UserProfile />
                             </>
@@ -84,6 +87,9 @@ const Navigation = () => {
                                 </Link>
                                 <Link href="/roadmap" className="block text-gray-600 hover:text-red-600">
                                     Roadmap
+                                </Link>
+                                <Link href="/coach" className="block text-gray-600 hover:text-red-600">
+                                    AI Coach
                                 </Link>
                                 <UserProfile />
                             </>

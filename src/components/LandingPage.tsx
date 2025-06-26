@@ -7,7 +7,8 @@ import {
     UsersIcon,
     BriefcaseIcon,
     CursorArrowRaysIcon,
-    CpuChipIcon
+    CpuChipIcon,
+    AcademicCapIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
@@ -21,7 +22,9 @@ const LandingPage = () => {
     const steps = [
         { icon: ArrowUpTrayIcon, title: "Upload Resume", desc: "Drop your international resume" },
         { icon: CpuChipIcon, title: "AI Analysis", desc: "Our AI maps your skills to Canadian standards" },
-        { icon: CursorArrowRaysIcon, title: "Get Matched", desc: "Find jobs that value your experience" }
+        { icon: BriefcaseIcon, title: "Roadmap", desc: "Our AI coach helps you improve your interview skills" },
+        { icon: AcademicCapIcon, title: "AI Coach", desc: "Our AI coach helps you improve your interview skills" },
+        { icon: CursorArrowRaysIcon, title: "Get Matched", desc: "Find jobs that value your experience. (Coming Soon)" }
     ];
 
     return (
@@ -132,49 +135,6 @@ const LandingPage = () => {
                 </motion.div>
             </div>
 
-            {/* Success Stories */}
-            <div className="relative z-10 bg-white/50 backdrop-blur-sm py-16">
-                <div className="container mx-auto px-6">
-                    <motion.h2
-                        className="text-4xl font-bold text-center mb-12 text-gray-800"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                    >
-                        Success Stories 🌟
-                    </motion.h2>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                        {successStories.map((story, i) => (
-                            <motion.div
-                                key={i}
-                                className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 shadow-lg border border-gray-100"
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: i * 0.2 }}
-                                whileHover={{ y: -10, boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
-                            >
-                                <div className="text-2xl mb-3">{story.flag}</div>
-                                <h3 className="text-xl font-bold text-gray-800 mb-2">{story.name}</h3>
-                                <div className="space-y-2 mb-4">
-                                    <div className="text-gray-600">{story.from}</div>
-                                    <div className="flex items-center gap-2">
-                                        <ArrowRightIcon className="w-4 h-4 text-red-500" />
-                                        <span className="font-semibold text-green-600">{story.to}</span>
-                                    </div>
-                                    <div className="text-sm text-blue-600 font-medium">{story.company}</div>
-                                </div>
-                                <div className="flex items-center gap-1 text-yellow-500">
-                                    {[...Array(5)].map((_, j) => (
-                                        <span key={j}>⭐</span>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </div>
 
             {/* How It Works */}
             <div className="relative z-10 py-16">
@@ -188,7 +148,7 @@ const LandingPage = () => {
                         How It Works ⚡
                     </motion.h2>
 
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-8 max-w-4xl mx-auto">
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-8 mx-auto">
                         {steps.map((step, i) => {
                             const IconComponent = step.icon;
                             return (
@@ -222,6 +182,50 @@ const LandingPage = () => {
                                 </React.Fragment>
                             );
                         })}
+                    </div>
+                </div>
+            </div>
+
+            {/* Success Stories */}
+            <div className="relative z-10 bg-white/50 backdrop-blur-sm py-16">
+                <div className="container mx-auto px-6">
+                    <motion.h2
+                        className="text-4xl font-bold text-center mb-12 text-gray-800"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        Success Stories 🌟 (mock data)
+                    </motion.h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                        {successStories.map((story, i) => (
+                            <motion.div
+                                key={i}
+                                className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 shadow-lg border border-gray-100"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.2 }}
+                                whileHover={{ y: -10, boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
+                            >
+                                <div className="text-2xl mb-3">{story.flag}</div>
+                                <h3 className="text-xl font-bold text-gray-800 mb-2">{story.name}</h3>
+                                <div className="space-y-2 mb-4">
+                                    <div className="text-gray-600">{story.from}</div>
+                                    <div className="flex items-center gap-2">
+                                        <ArrowRightIcon className="w-4 h-4 text-red-500" />
+                                        <span className="font-semibold text-green-600">{story.to}</span>
+                                    </div>
+                                    <div className="text-sm text-blue-600 font-medium">{story.company}</div>
+                                </div>
+                                <div className="flex items-center gap-1 text-yellow-500">
+                                    {[...Array(5)].map((_, j) => (
+                                        <span key={j}>⭐</span>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
                 </div>
             </div>
