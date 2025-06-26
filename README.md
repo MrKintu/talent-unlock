@@ -7,6 +7,18 @@
   [![TalentUnlock Demo](https://img.shields.io/badge/▶️-Watch%20Demo-red?style=for-the-badge)](https://share.synthesia.io/14edb68b-71cd-47c9-9121-fcb21350af7b)
   
   [![TalentUnlock Presentation](https://img.shields.io/badge/📊-View%20Presentation-blue?style=for-the-badge)](https://gamma.app/docs/Welcome-to-HackTheBrain-2025-TalentUnlock-4fo7g3lwvvoz0xf)
+
+  ### Built With
+  
+  [![Next.js](https://img.shields.io/badge/Next.js-14+-000000?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+  [![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
+  
+  [![Google Cloud](https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud)](https://cloud.google.com/)
+  [![Vertex AI](https://img.shields.io/badge/Vertex_AI-4285F4?style=for-the-badge&logo=google-cloud)](https://cloud.google.com/vertex-ai)
+  [![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer)](https://www.framer.com/motion/)
+  [![Heroicons](https://img.shields.io/badge/Heroicons-000000?style=for-the-badge&logo=heroicons)](https://heroicons.com/)
   
 </div>
 
