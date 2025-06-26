@@ -3,6 +3,7 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 import Card from '@/components/ui/Card';
+import EmploymentDashboard from '@/components/profile/insights/EmploymentDashboard';
 
 // Dynamically import charts to avoid SSR issues
 const JobMarketChart = dynamic(() => import('@/components/profile/insights/JobMarketChart'), { ssr: false });
@@ -18,6 +19,11 @@ export default function GTAInsightsClient() {
                 <p className="text-gray-600 mt-2">
                     Real-time analytics and insights for the Greater Toronto Area job market
                 </p>
+            </div>
+
+            {/* Employment Statistics Dashboard */}
+            <div className="mb-8">
+                <EmploymentDashboard region="ontario" months={24} />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
