@@ -2,11 +2,12 @@
 
 **HackTheBrain 2025 Project** | **Category**: Community – Newcomers & Access to White-Collar Work
 
-<div align="center">
   
-  [![TalentUnlock Demo](https://img.shields.io/badge/▶️-Watch%20Demo-red?style=for-the-badge)](https://share.synthesia.io/14edb68b-71cd-47c9-9121-fcb21350af7b)
+  [![TalentUnlock Demo](https://img.shields.io/badge/▶️-Intro-yellow?style=for-the-badge)](https://share.synthesia.io/14edb68b-71cd-47c9-9121-fcb21350af7b)
+  [![TalentUnlock Demo](https://img.shields.io/badge/▶️-Watch%20Demo-red?style=for-the-badge)](https://www.loom.com/share/6d23408e78664d118a5c7b4781539fca?sid=1e781504-a732-4247-bffc-58eb81083896)
   
   [![TalentUnlock Presentation](https://img.shields.io/badge/📊-View%20Presentation-blue?style=for-the-badge)](https://gamma.app/docs/by-Cloud-JED-AI-4fo7g3lwvvoz0xf)
+  [![TalentUnlock Presentation](https://img.shields.io/badge/📊-download%20Presentation-blue?style=for-the-badge)](./docs//assets//Presentation-by-Cloud-JED-AI.pdf)
 
   ### Built With
   
@@ -267,6 +268,28 @@ Returns job recommendations based on analysis
 - **Next.js** team for the amazing framework
 - **Canadian immigrant community** for inspiration
 
+## ⭐ Support & Feedback
+
+If you find this project useful or interesting:
+
+<div align="center">
+
+### Show Your Support
+
+⭐ Star this repository to show your appreciation and help others discover it! ⭐
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/j_bhola)
+
+</div>
+
+> Your support motivates me to create more open-source AI projects and educational content. Every star makes a difference and helps this project reach more developers interested in AI and NLP.
+
+<div align="center">
+
+[![Stargazers](https://img.shields.io/github/stars/jatinderbhola/talent-unlock?style=for-the-badge)](https://github.com/jatinderbhola/talent-unlock/stargazers)
+[![Forks](https://img.shields.io/github/forks/jatinderbhola/talent-unlock?style=for-the-badge)](https://github.com/jatinderbhola/talent-unlock/network/members)
+
+</div>
 ---
 
 **Built with ❤️ for the Canadian immigrant community**
